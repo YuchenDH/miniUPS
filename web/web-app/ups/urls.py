@@ -13,9 +13,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+from django.contrib import admin,staticfiles
+from .settings import BASE_DIR
+from django.urls import include,path
+from weblog import views
+from django.views import static
+import os,django
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('users/', include('weblog.urls')),
+    path('users/', include('django.contrib.auth.urls')),#built-in login change-password find-password view function
+    path('',views.index,name='index'),
+    path('static/image/<path>',static.serve),
 ]

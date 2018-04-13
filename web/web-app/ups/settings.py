@@ -25,12 +25,13 @@ SECRET_KEY = 'd+amd&&8^paza+-25!-w$ir=9-eu(j8=qnmdu#+dt8lhfewd=_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['web']
+ALLOWED_HOSTS = ['web','localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'weblog.apps.WeblogConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,7 +51,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'ups.urls'
-
+STATIC_URL = '/static/' #assign static url
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -66,6 +67,10 @@ TEMPLATES = [
         },
     },
 ]
+#allow storing all static file in one dir
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 WSGI_APPLICATION = 'ups.wsgi.application'
 
@@ -76,9 +81,9 @@ WSGI_APPLICATION = 'ups.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'db',
+        'NAME': 'upsweb',#diff in localhost and docker //postgres
+        'USER': 'postgres',#
+        'HOST': 'localhost',#diff in localhost and docker //db
         'PORT': '5432',
     }
 }
@@ -121,3 +126,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+#self setting
+AUTH_USER_MODEL = 'weblog.realuser'
