@@ -23,6 +23,7 @@ import os,django
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('weblog.urls')),
+    path('search/', include('search.urls')),
     path('users/', include('django.contrib.auth.urls')),#built-in login change-password find-password view function
     path('',views.index,name='index'),
     path('static/image/<path>',static.serve),

@@ -30,23 +30,11 @@
     {% endif %}
    </div>
    </nav>
-   <br><br><br><br><br><br><br>
-   <div class="text-center">
-    <form action="/search/tracking/" method="post">
-        {% csrf_token %}
-        <input type="text" name="tnum">
-        <input type="submit" value="Submit">
-    </form>
-    </div>
    <br><br><br><br><br><br><br><br>
-   <div class="container-fluid">
    <div class="text-center">
-   <img src= "/static/image/ups.gif"  >
+   <h2>{{status}}</h2>
+   <h2>{{date}}</h2>
    </div>
-   </div>
-   <br><br><br><br><br><br><br><br><br><br><br>
-   <div class='text-center text-info'>
-   <p>Presented by Yingzhuo Zhang and Yuchen Wang</p>
-   </div>
+
    </body>
 </html>
