@@ -1,0 +1,41 @@
+message Item{
+	required string des = 1;
+	required int32 count = 2;
+	optional int64 id = 3;
+}
+message Warehouse{
+	required int32 id =1;
+	required int32 X = 2;
+	required int32 Y = 3;
+}
+message Truck{
+	required int32 id =1;
+	optional int32 X = 2;
+	optional int32 Y = 3;	
+}
+message A2Upickuprequest{
+	repeated Item items = 1;
+	required Warehouse wh = 2;
+	required int64 oid = 3;
+}
+message U2Agenpid{
+	required int64 pid =1;
+	required int64 oid =2;
+}
+message U2Atruckarrive{
+	required Truck tr = 1;
+	repeated int64 pids =2;
+	required int32 whid =3;
+}
+message A2Utruckdepart{
+	required Truck tr = 1;
+}
+
+message A2U{
+	repeated A2Upikuprequest pr =1;
+	repeated A2Utruckdepart td =2;
+}
+message U2A{
+	repeated U2Agenpid gp =1;
+	repeated U2Atruckarrive ta=2;
+}
