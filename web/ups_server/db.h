@@ -121,12 +121,12 @@ public:
 		}	
 		return 0;
 	}
-	int add_order(int tracking_num,int order_id,int wh_id,int des_x,int des_y,int status,int truck_id,int user_id){
+	int add_order(int tracking_num,int order_id,int wh_id,int des_x,int des_y,int status,int truck_id,int user_id,std::string first_item,int item_num){
 		if(!verify_tracking_num(tracking_num)){
 			std::cout<<"order already exists\r\n";
 			return 1;
 		}
-		std::string res("insert into search_orders (tracking_num,order_id,wh_id,des_x,des_y,status,date,truck_id,user_id) values(");
+		std::string res("insert into search_orders (tracking_num,order_id,wh_id,des_x,des_y,status,date,first_item,item_num,truck_id,user_id) values(");
 		try{
 			work W(*C);
 			res+=std::to_string(tracking_num);res+=",";
@@ -136,8 +136,11 @@ public:
 			res+=std::to_string(des_y);res+=",";
 			res+=std::to_string(status);res+=",";
 			res+=W.quote(get_timestamp());res+=",";
-			res+=std::to_string(truck_id);res+=",";
+			res+=W.quote(first_item);res+=",";
+			res+=std::to_string(item_num);res+=",";				
+			res+=std::to_string(truck_id);res+=",";		
 			res+=std::to_string(user_id);res+=");";
+
 			W.exec(res);
 			W.commit();	
 		}
@@ -148,12 +151,12 @@ public:
 		}	
 		return 0;		
 	}
-	int add_order(int tracking_num,int order_id,int wh_id,int status,int truck_id,int user_id){
+	int add_order(int tracking_num,int order_id,int wh_id,int status,int truck_id,int user_id,std::string first_item,int item_num){
 		if(!verify_tracking_num(tracking_num)){
 			std::cout<<"order already exists\r\n";
 			return 1;
 		}
-		std::string res("insert into search_orders (tracking_num,order_id,wh_id,status,date,truck_id,user_id) values(");
+		std::string res("insert into search_orders (tracking_num,order_id,wh_id,status,date,first_item,item_num,truck_id,user_id) values(");
 		try{
 			work W(*C);
 			res+=std::to_string(tracking_num);res+=",";
@@ -161,8 +164,11 @@ public:
 			res+=std::to_string(wh_id);res+=",";
 			res+=std::to_string(status);res+=",";
 			res+=W.quote(get_timestamp());res+=",";
+			res+=W.quote(first_item);res+=",";
+			res+=std::to_string(item_num);res+=",";			
 			res+=std::to_string(truck_id);res+=",";
 			res+=std::to_string(user_id);res+=");";
+
 			W.exec(res);
 			W.commit();	
 		}
@@ -178,7 +184,7 @@ public:
 			std::cout<<"order already exists\r\n";
 			return 1;
 		}
-		std::string res("insert into search_orders (tracking_num,order_id,wh_id,des_x,des_y,status,date,truck_id,user_id) values(");
+		std::string res("insert into search_orders (tracking_num,order_id,wh_id,des_x,des_y,status,date,truck_id) values(");
 		try{
 			work W(*C);
 			res+=std::to_string(tracking_num);res+=",";

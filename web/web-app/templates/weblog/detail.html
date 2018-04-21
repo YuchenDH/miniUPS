@@ -30,11 +30,14 @@
     {% endif %}
    </div>
    </nav>
-   <div class="container-fluid">
-   <div class="text-center">
-   <img src= "/static/image/invalid.png" height="1280" width="1920" >
-   </div>
-   </div>
+   <br><br><br><br><br><br><br><br>
+  <div class="container" style="padding: 100px 50px 10px;" >
+  <div class='text-center'>
+  {% for uo in uos %}
+  <a href="/search/orders/?oi={{uo.order_id}}" class="list-group-item" data-toggle="popover" title="{{uo.first_item}} and other {{uo.item_num}} items">{{uo.order_id}}</a>
+  {% endfor %}
+  </div>
+  </div>
 
    </body>
 </html>

@@ -30,11 +30,47 @@
     {% endif %}
    </div>
    </nav>
-   <div class="container-fluid">
+   <br><br><br><br><br><br><br><br>
+
+  <div class="container-fluid">
    <div class="text-center">
-   <img src= "/static/image/invalid.png" height="1280" width="1920" >
+   <img src= "/static/image/{{imgpath}}" height="100" width="800" >
    </div>
    </div>
+   <div class="text-center">
+   <h3>Last update at: {{date}}</h3>
+   <h3>Ship to Location ({{order.des_x}},{{order.des_y}})</h3>
+  </div>
+
+  <div class="container" style="padding: 50px 50px 10px;" >
+  <div class='text-center'>
+  {% for item in items %}
+  <a class="list-group-item" >{{item.name}}</a>
+  {% endfor %}
+  </div>
+  </div>
+
+  {% if order.status < 4 %}
+  <div class='text-center'>
+  <div class="container" style="padding: 50px 400px 10px;" >
+  
+    <form class="form" action="?oi={{order.order_id}}" method="post">
+    {% csrf_token %}
+   <div class="row">
+      <div class="col-lg-6"><input type="text" name="x"></input></div>
+      <div class="col-lg-6"><input type="text" name="y"></input></div>      
+   </div>
+   <div class="row">
+      <div class="col-lg-6">X Loction</div>
+      <div class="col-lg-6">Y Location</div>
+   </div>
+    <div class="row">
+      <button type="submit" class="btn btn-primary btn-lg">Change Destination</button>    
+   </div>
+   </form>
+   </div>
+    </div>
+  {% endif %}
 
    </body>
 </html>

@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from .forms import RegisterForm
 from .models import realuser
+from search.models import trucks,orders,items
 def register(request):
     #only when we get a POST request, we need to get the information user submit
     if request.method == 'POST':
@@ -18,3 +19,8 @@ def register(request):
             
 def index(request):
     return render(request,'index.html')
+
+def detail(request):
+    uid = request.user.id
+    uos = orders.objects.filter(user_id = uid).all()
+    return render(request,'weblog/detail.html',context={'uos':uos})
