@@ -10,6 +10,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <pqxx/pqxx>
+#include "packedmessage.h"
 #include "db.h"
 #include "packedmessage.h"
 #include "ups.pb.h"
@@ -24,15 +25,22 @@ using namespace std;
 namespace asio = boost::asio;
 using asio::ip::tcp;
 using boost::uint8_t;
+typedef std::vector<boost::uint8_t> data_buffer;
 
 class UpsServer : public boost::enable_shared_from_this<UpsServer> {
 public:
   typedef boost::shared_ptr<UpsServer> Pointer;
+  /*
   typedef boost::shared_ptr<ups::UCommands> CommandsPointer;
   typedef boost::shared_ptr<ups::UResponse> ResponsesPointer;
   typedef boost::shared_ptr<au::A2U> A2UPointer;
   typedef boost::shared_ptr<au::U2A> U2APointer;
-  
+  */
+  typedef boost::shared_ptr<ups:UCommand> UCommand;
+  typedef boost::shared_ptr<ups::UResponses> UResponses;
+  typedef boost::shared_ptr<au::A2U> A2U;
+  typedef boost::shared_ptr<au::U2A> U2A;
+
   void start() {
     connect_world();
     connect_amz();
@@ -49,15 +57,16 @@ private:
   tcp::socket world_sock;
   db::dbPointer db;
   vector<uint8_t> amz_readbuf;
-  vector<uint8_t> world_readbuf;
+  data_buffer world_readbuf;
   std::mutex db_lock;
-  PackedMessage<au::A2U> a2u_request;
-  PackedMessage<au::U2A> u2a_response;
-  tcp::acceptor amz_acceptor;
-  PackedMessage<ups::UCommands> world_commands;
-  PackedMessage<ups::UResponses> world_responses;
+
+  PackedMessage<ups::UCommand> packed_uc;
+  PackedMessage<ups::UResponses> packed_ur;
+  PackedMessage<au::A2U> packed_a2u;
+  PackedMessage<au::U2A> packed_u2a;
   
   UpsServer(asio::io_service& world, asio::io_service& amz, db::dbPointer database) : amz_sock(amz), world_sock(world), db(database) {
+
   }
   
   void connect_world(){
@@ -160,10 +169,53 @@ private:
   inline void dummy() {}
   void world_handle_request() {
     //unpack world_readbuf
-
+    if (packed_ur.unpack(world_readbuf)) {
+        UResponses ures = packed_ur.get_msg();
+        prepare_U2A(ures)
+    }    
     //handle request
   }
+  U2A prepare_U2A(UResponse ures){
+    if(ures->has_error()){
+      //has error, handle it
+    }
+    else{
+      for(int i=0 ;i<ures->delivered_size();++i){
+        int truck_id = ures->delivered(i)->truckid();
+        long package_id = ures->delivered(i)->packageid();
+        //update db based on pid(tracking num) and truckid
+        
+        return NULL;
+      }
+      U2A response = new au::U2A();
+      for(int i=0 ;i<ures->completions_size();++i){
+        int truck_id = ures->completions(i)->truckid();
+        int x = ures->completions(i)->x();
+        int y = ures->completions(i)->y();
+        //update truck location
+        
+        //find whid based on location
+        int whid = findwhid(x,y);
+        //set U2A
+        
 
+        au::Truck * tr = new au::Truck();//need delete
+        tr->set_id(truck_id);tr->set_X(x);tr->set_Y(y);
+        au::U2Atruckarrive * temp = response->add_ta();
+        temp->set_allocated_truck(tr);
+
+        temp->set_whid(whid);
+
+        std::vector<long> * res = db->get_oid_by_truckid(truck_id);//res need delete
+        for(int i=0;i<res->size();++i){
+          temp->set_oids(i,res->at(i));
+        }
+        delete res;
+      }
+      return response;    
+    }
+
+  }
   void amz_handle_read_header(const boost::system::error_code* error) {
     if (!error) {
       DEBUG && (cerr << "Got header from amz\n" << endl);

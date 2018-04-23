@@ -7,6 +7,7 @@
 #include <ctime>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 using namespace pqxx;
 
@@ -79,7 +80,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( N.exec( res ));
     return R.size()>0 ? false:true;
   }
-  bool verify_tracking_num(int tn){
+  bool verify_tracking_num(long tn){
     std::string res("select * from search_orders where tracking_num = ");
     res+=std::to_string(tn);
     res+=";";
@@ -129,7 +130,7 @@ class db : public boost::enable_shared_from_this<db> {
     }	
     return 0;
   }
-  int add_order(int tracking_num,int order_id,int wh_id,int des_x,int des_y,int status,int truck_id,int user_id,std::string first_item,int item_num){
+  int add_order(long tracking_num,long order_id,int wh_id,int des_x,int des_y,int status,int truck_id,int user_id,std::string first_item,int item_num){
     if(!verify_tracking_num(tracking_num)){
       std::cout<<"order already exists\r\n";
       return 1;
@@ -159,7 +160,7 @@ class db : public boost::enable_shared_from_this<db> {
     }	
     return 0;		
   }
-  int add_order(int tracking_num,int order_id,int wh_id,int status,int truck_id,int user_id,std::string first_item,int item_num){
+  int add_order(long tracking_num,long order_id,int wh_id,int status,int truck_id,int user_id,std::string first_item,int item_num){
     if(!verify_tracking_num(tracking_num)){
       std::cout<<"order already exists\r\n";
       return 1;
@@ -187,7 +188,7 @@ class db : public boost::enable_shared_from_this<db> {
     }	
     return 0;		
   }
-  int add_order(int tracking_num,int order_id,int wh_id,int des_x,int des_y,int status,int truck_id){
+  int add_order(long tracking_num,long order_id,int wh_id,int des_x,int des_y,int status,int truck_id){
     if(!verify_tracking_num(tracking_num)){
       std::cout<<"order already exists\r\n";
       return 1;
@@ -213,7 +214,7 @@ class db : public boost::enable_shared_from_this<db> {
     }	
     return 0;		
   }
-  int add_order(int tracking_num,int order_id,int wh_id,int status,int truck_id){
+  int add_order(long tracking_num,long order_id,int wh_id,int status,int truck_id){
     if(!verify_tracking_num(tracking_num)){
       std::cout<<"order already exists\r\n";
       return 1;
@@ -238,7 +239,7 @@ class db : public boost::enable_shared_from_this<db> {
     }	
     return 0;		
   }
-  int add_item(std::string name,int order_id){
+  int add_item(std::string name,long order_id){
     std::string res("insert into search_items (name,order_id) values(");
     try{
       work W(*C);
@@ -266,5 +267,16 @@ class db : public boost::enable_shared_from_this<db> {
       return -1;			
     }
     return 0;
+  }
+  std::vector<long> * get_oid_by_truckid(int truck_id){
+    std::vector<long> * res = new std::vector<long>();
+    string ins("SELECT order_id FROM search_orders WHERE truck_id = ");
+    ins+=std::to_string(truck_id);ins+=";";
+    nontransaction N(*C);
+    result R( N.exec( ins ));
+    for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
+      res->push_back(c[0].as<long>());
+    } 
+    return res;
   }
 };
