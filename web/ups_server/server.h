@@ -52,10 +52,8 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
   PackedMessage<ups::UResponses> packed_ur;
   PackedMessage<au::A2U> packed_a2u;
   PackedMessage<au::U2A> packed_u2a;
-  //a db object
-  db::db * database;
 
-  UpsServer(asio::io_service& world, asio::io_service& amz, const db::db* db) : amz_sock(amz), world_sock(world), database(db) {
+  UpsServer(asio::io_service& world, asio::io_service& amz, const std::string database) : amz_sock(amz), world_sock(world) {
     //connect to database
   }
 
@@ -101,51 +99,23 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
     //unpack world_readbuf
     if (packed_ur.unpack(world_readbuf)) {
         UResponses ures = packed_ur.get_msg();
-        prepare_U2A(ures)
+        if(ures->has_error()){
+          //has error, handle it
+        }
+        else{
+          for(int i=0 ;i<ures->delivered_size();++i){
+            int truck_id = ures->delivered(i)
+            long truck_id = ures->delivered(i)
+          }
+          for(int i=0 ;i<ures->completions_size();++i){
+            
+          }
+        }
     }    
+
     //handle request
   }
-  U2A prepare_U2A(UResponse ures){
-    if(ures->has_error()){
-      //has error, handle it
-    }
-    else{
-      for(int i=0 ;i<ures->delivered_size();++i){
-        int truck_id = ures->delivered(i)->truckid();
-        long package_id = ures->delivered(i)->packageid();
-        //update db based on pid(tracking num) and truckid
-        
-        return NULL;
-      }
-      U2A response = new au::U2A();
-      for(int i=0 ;i<ures->completions_size();++i){
-        int truck_id = ures->completions(i)->truckid();
-        int x = ures->completions(i)->x();
-        int y = ures->completions(i)->y();
-        //update truck location
-        
-        //find whid based on location
-        int whid = findwhid(x,y);
-        //set U2A
-        
 
-        au::Truck * tr = new au::Truck();//need delete
-        tr->set_id(truck_id);tr->set_X(x);tr->set_Y(y);
-        au::U2Atruckarrive * temp = response->add_ta();
-        temp->set_allocated_truck(tr);
-
-        temp->set_whid(whid);
-
-        std::vector<long> * res = database->get_oid_by_truckid(truck_id);//res need delete
-        for(int i=0;i<res->size();++i){
-          temp->set_oids(i,res->at(i));
-        }
-        delete res;
-      }
-      return response;    
-    }
-
-  }
   void amz_handle_read_header(const boost::system::error_code* error) {
     if (!error) {
       //unsigned msg_len = decode_header(readbuf);
