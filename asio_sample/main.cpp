@@ -12,6 +12,7 @@
 #include <pqxx/pqxx>
 #include "packedmessage.h"
 #include "db.h"
+
 using namespace std;
 namespace asio = boost::asio;
 using asio::ip::tcp;
@@ -32,14 +33,14 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
     start_read_world();
   }
 
-  static Pointer create(asio::io_service& world, asio::io_service& amz, const std::string database) {
+  static Pointer create(asio::io_service& world, asio::io_service& amz, db::dbPointer database) {
     return Pointer(new UpsServer(world, amz, database));
   }
 
  private:
   tcp::socket amz_sock;
   tcp::socket world_sock;
-  pqxx::connection C;
+  db::dbPointer db;
   vector<uint8_t> amz_readbuf;
   data_buffer world_readbuf;
   std::mutex db_lock;
@@ -52,11 +53,9 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
   PackedMessage<ups::UResponses> packed_ur;
   PackedMessage<au::A2U> packed_a2u;
   PackedMessage<au::U2A> packed_u2a;
-  //a db object
-  db::db * database;
+  
+  UpsServer(asio::io_service& world, asio::io_service& amz, db::dbPointer database) : amz_sock(amz), world_sock(world), db(database) {
 
-  UpsServer(asio::io_service& world, asio::io_service& amz, const db::db* db) : amz_sock(amz), world_sock(world), database(db) {
-    //connect to database
   }
 
   void connect_world(){
@@ -136,7 +135,7 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
 
         temp->set_whid(whid);
 
-        std::vector<long> * res = database->get_oid_by_truckid(truck_id);//res need delete
+        std::vector<long> * res = db->get_oid_by_truckid(truck_id);//res need delete
         for(int i=0;i<res->size();++i){
           temp->set_oids(i,res->at(i));
         }
@@ -185,21 +184,4 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
     //handle request
   }
  
-  void amz_start() {
-    amz_acceptor.acceptor(amz_sock, tcp::endpoint(tcp::v4(), PORT));
-    amz_start_accept();
-  }
-
-  void amz_start_accept() {
-    amz_acceptor.async_accept(amz_sock, boost::bind(handle_accept, shared_from_this(), asio:;placeholders::error));
-  }
-
-  void handle_accept(const boost::system::error_code& error) {
-    if(!error) {
-      amz_start_read_header();
-    }
-    amz_start_accept();
-  }
-
-  void amz_send_response(){}
 }
