@@ -10,6 +10,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <pqxx/pqxx>
+#include "db.h"
 
 using namespace std;
 namespace asio = boost::asio;
@@ -27,14 +28,14 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
     start_read_world();
   }
 
-  static Pointer create(asio::io_service& world, asio::io_service& amz, const std::string database) {
+  static Pointer create(asio::io_service& world, asio::io_service& amz, db::dbPointer database) {
     return Pointer(new UpsServer(world, amz, database));
   }
 
  private:
   tcp::socket amz_sock;
   tcp::socket world_sock;
-  pqxx::connection C;
+  db::dbPointer db;
   vector<uint8_t> amz_readbuf;
   vector<uint8_t> world_readbuf;
   std::mutex db_lock;
@@ -44,8 +45,7 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
   //PackedMessage::PackedMessage<au> amz_response;
   //PackedMessage::PackedMessage<world> world_response;
   
-  UpsServer(asio::io_service& world, asio::io_service& amz, const std::string database) : amz_sock(amz), world_sock(world) {
-    //connect to database
+  UpsServer(asio::io_service& world, asio::io_service& amz, db::dbPointer database) : amz_sock(amz), world_sock(world), db(database) {
   }
 
   void connect_world(){
@@ -131,21 +131,4 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
     //handle request
   }
  
-  void amz_start() {
-    amz_acceptor.acceptor(amz_sock, tcp::endpoint(tcp::v4(), PORT));
-    amz_start_accept();
-  }
-
-  void amz_start_accept() {
-    amz_acceptor.async_accept(amz_sock, boost::bind(handle_accept, shared_from_this(), asio:;placeholders::error));
-  }
-
-  void handle_accept(const boost::system::error_code& error) {
-    if(!error) {
-      amz_start_read_header();
-    }
-    amz_start_accept();
-  }
-
-  void amz_send_response(){}
 }
