@@ -1,0 +1,36 @@
+//
+// server_main.cpp: Main server implementation
+//
+// Yuchen Wang (wangyuchen229@gmail.com)
+// This code is in the public domain
+//
+#include <iostream>
+#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <boost/shared_ptr.hpp>
+#include <boost/asio.hpp>
+#include "ups_server.h"
+#include "packedmessage.h"
+#include "stringdb.pb.h"
+
+
+using namespace std;
+namespace asio = boost::asio;
+
+int main(int argc, const char* argv[])
+{
+    unsigned port = 23456;
+    cout << "Serving on port " << port << endl;
+
+    try {
+        asio::io_service io_service;
+        DbServer server(io_service, port);
+        io_service.run();
+    }
+    catch (std::exception& e) {
+        cerr << e.what() << endl;
+    }
+
+    return 0;
+}
