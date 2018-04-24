@@ -1,15 +1,26 @@
-LIBS=-lpthread -lprotobuf
-CC=g++
-ARGS=-std=gnu++11 -Wall -Werror -ggdb3
-CFLAGS=-std=gnu++11 -Wall -Werror -ggdb3 -O3
-EXTRAFLAGS=-lpqxx -lpq
-socket:ups.pb.o
-	$(CC) $^ $(LIBS) -o $@
-ups.pb.o: proto/ups.pb.cc proto/ups.pb.h
-	$(CC) $(ARGS) -I/usr/include/google/protobuf proto/$*.cc -o $@
-#server: server.cpp server.h
-#	g++  -o server -std=gnu++11 -Wall -Werror -ggdb3 server.cpp -lpthread
-#socket: socket.cpp socket.h
-#	g++  -o socket -std=gnu++11 -Wall -Werror -ggdb3 socket.cpp -lpthread
-db: db.cpp db.h
-	$(CC) $(CFLAGS) -o db db.cpp $(EXTRAFLAGS)
+# Makefile for asio_protobuf_samples
+# Expects protobuf and boost to be installed 
+#
+PROTOBUF_CFLAGS = `pkg-config --cflags protobuf`
+PROTOBUF_LFLAGS = `pkg-config --libs protobuf`
+BOOST_LFLAGS = -lboost_system
+
+
+server_main: server_main.o stringdb.pb.o db_server.o 
+	g++ -o server_main server_main.o db_server.o stringdb.pb.o \
+		$(PROTOBUF_LFLAGS) $(BOOST_LFLAGS)
+
+stringdb.pb.o: stringdb.proto
+	protoc --cpp_out=. --python_out=. stringdb.proto
+	g++ -c stringdb.pb.cc $(PROTOBUF_CFLAGS)
+
+HEADERS = $(wildcard *.h)
+
+%.o: %.cpp stringdb.pb.o ${HEADERS}
+	g++ -c $<
+
+clean:
+	rm -f *.pb.*
+	rm -f *_pb2.*
+	rm -f *.o 
+	rm -f server_main 
