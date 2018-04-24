@@ -323,11 +323,19 @@ private:
       insert_order_to_db(a2u->mutable_pr(i));
     }
     int truck_id=-2;
-    while((truck_id = db->get_free_truck())<0){
-      //wait for free truck
-    }
-    int whid = bind_order_with_truck(truck_id);
     
+    while(db->check_order_truck() && ((truck_id = db->get_free_truck()) > 0)){
+      int whid = db->get_oldest_no_truck();
+      db->update_order_to_pickup_by_whid(whid);
+      //int whid = bind_order_with_truck(truck_id);
+    }
+
+    if (db->check_order_truck()) {
+      truckshortage = true;
+    } else {
+      truckshortage = false;
+    }
+
     //set UGoPickup
     if(whid==-1){
       //no order is unattended
@@ -344,6 +352,7 @@ private:
       update_db_by_td(a2u->mutable_td(i));
     } 
   }
+
   int bind_order_with_truck(int truck_id){
     int whid = db->get_oldest_order_whid();
     std::vector<long> * temp = db->get_oid_by_whid(whid);//need delete
@@ -356,6 +365,7 @@ private:
     }
     return whid;
   }
+
   void insert_order_to_db(au::A2Upickuprequest* pr){
     long order_id = pr->oid();
     long package_id = gen_package_id(oreder_id);
