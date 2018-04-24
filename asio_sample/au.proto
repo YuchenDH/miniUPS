@@ -1,7 +1,5 @@
-syntax = "proto2";
-
 message Item{
-	required string des = 1;
+	required string des = 1; 
 	required int32 count = 2;
 	optional int64 id = 3;
 }
@@ -10,25 +8,40 @@ message Warehouse{
 	required int32 X = 2;
 	required int32 Y = 3;
 }
+message Position{
+	required int32 X = 1;
+	required int32 Y = 2;
+}
 message Truck{
 	required int32 id =1;
 	optional int32 X = 2;
 	optional int32 Y = 3;	
 }
+
+//amazon requests trucks to pickup packages
 message A2Upickuprequest{
-	repeated Item items = 1;
+	repeated Item items = 1; 
 	required Warehouse wh = 2;
 	required int64 oid = 3;
+	required Position destination = 4;
+	optional string upsAccount = 5 ; //ups username
 }
+
+//ups sends package id corresponding to order id
 message U2Agenpid{
 	required int64 pid =1;
 	required int64 oid =2;
 }
+
+//ups sends the message to tell the truck is arrived
 message U2Atruckarrive{
 	required Truck tr = 1;
-	repeated int64 oids =2;
+	repeated int64 OBSOLETE_pids =2; //DO NOT USE THIS FIELD!
 	required int32 whid =3;
+	repeated int64 oids = 4;
 }
+
+//amazon tells ups the truck can leave
 message A2Utruckdepart{
 	required Truck tr = 1;
 }
