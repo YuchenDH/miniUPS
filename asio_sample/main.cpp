@@ -37,7 +37,7 @@ public:
   typedef boost::shared_ptr<au::A2U> A2UPointer;
   typedef boost::shared_ptr<au::U2A> U2APointer;
   */
-  typedef boost::shared_ptr<ups:UCommand> UCommand;
+  typedef boost::shared_ptr<ups:UCommands> UCommands;
   typedef boost::shared_ptr<ups::UResponses> UResponses;
   typedef boost::shared_ptr<au::A2U> A2U;
   typedef boost::shared_ptr<au::U2A> U2A;
@@ -69,7 +69,6 @@ private:
   std::unordered_map<int,time_t> truck_ready;
   bool truckshortage = false;
   UpsServer(asio::io_service& world, asio::io_service& amz, db::dbPointer database) : amz_sock(amz), world_sock(world), db(database) {
-
   }
   long gen_package_id(long oreder_id){
     time_t nowtime;  
@@ -178,17 +177,26 @@ private:
   }
 
   inline void dummy() {}
+  
   void world_handle_request() {
     //unpack world_readbuf
     if (packed_ur.unpack(world_readbuf)) {
         UResponses ures = packed_ur.get_msg();
-        prepare_U2A(ures)
-    }    
-    //handle request
+        U2A resp = prepare_U2A(ures);
+	//assert resp is not empty (happens when world sent a "deliver_made"-only response)
+
+	
+	//pack message and send to amz
+	vector<uint8_t> writebuf;
+	PackedMessage<au::U2A> resp_msg(resp);
+	resp_msg.pack(writebuf);
+	send_msg(amz_sock, writebuf);
+    }
   }
   U2A prepare_U2A(UResponse ures){
     if(ures->has_error()){
       //has error, handle it
+      cerr << "Error msg in world response: " << ures->error() << endl;
     }
     else{
       //process UDelivaryMade
@@ -202,8 +210,10 @@ private:
         
         return NULL;
       }
-      U2A response = new au::U2A();
+      U2A response(new au::U2A());
+
       //process UFinished
+
       for(int i=0 ;i<ures->completions_size();++i){
         int truck_id = ures->completions(i)->truckid();
         int status = db->get_truck_status(truck_id);//0:free/idle 1:ready 2:pickup 3:wait for loading 4:out of delivery
@@ -314,14 +324,18 @@ private:
   }
   
   void amz_handle_request() {
-    //unpack amz_readbuf
     if (packed_a2u.unpack(amz_readbuf)) {
-        A2U a2u = packed_a2u.get_msg();
-        //
-        prepare_UCommand(a2u);
-    }    
-    //handle request
+        A2U ares = packed_a2u.get_msg();
+        UCommands resp = prepare_UCommands(ares);
+
+	//pack message and send to amz
+	vector<uint8_t> writebuf;
+	PackedMessage<au::UCommands> resp_msg(resp);
+	resp_msg.pack(writebuf);
+	send_msg(world_sock, writebuf);
+    }
   }
+
   void assign_truck(ups::UCommand * response){
     int truck_id = -1;
     while(db->has_unprocessed_order() && (truck_id = db->get_free_truck())>0){
