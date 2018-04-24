@@ -2,8 +2,8 @@
 #include <boost/shared_ptr.hpp>
 #include <string>
 #include <cstdlib>
-#include "ups.pb.h"
-#include "au.pb.h"
+#include "proto/ups.pb.h"
+#include "proto/au.pb.h"
 #include "packedmessage.h"
 #include "ups_server.h"
 
