@@ -4,7 +4,7 @@
 PROTOBUF_CFLAGS = `pkg-config --cflags protobuf`
 PROTOBUF_LFLAGS = `pkg-config --libs protobuf`
 BOOST_LFLAGS = -lboost_system
-PQXX_LFLAGS = -lpqxx
+PQXX_LFLAGS = -lpqxx -lpq
 
 server_main: main.o ups.pb.o au.pb.o 
 	g++ -o server_main main.o ups.pb.o au.pb.o\
@@ -18,5 +18,8 @@ au.pb.o: proto/au.pb.cc
 
 HEADERS = $(wildcard *.h)
 
+main.o:main.cpp packedmessage.h db.h ups_server.h proto/ups.pb.o proto/au.pb.h
+	g++ -std=c++11 main.cpp -o main.o
+
 %.o: %.cpp proto/ups.pb.o proto/au.pb.o ${HEADERS}
-	g++ -c $<
+	g++ -std=c++11 $<
