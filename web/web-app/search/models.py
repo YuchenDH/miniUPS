@@ -3,7 +3,7 @@ from weblog.models import realuser
 # Create your models here.
 class trucks(models.Model):
 	truck_id = models.IntegerField(primary_key=True)
-	status = models.BooleanField(default=True)#True: free  False:busy
+	status = models.IntegerField(default=0)#0:free 1:wait for package,2 on the way to warehouse,3 wait for loaded,4 out of delivery
 	xloction = models.IntegerField(null=True,blank=True)
 	yloction = models.IntegerField(null=True,blank=True)
 
@@ -22,4 +22,10 @@ class orders(models.Model):
 
 class items(models.Model):
 	name = models.CharField(max_length=50)
+	count = models.IntegerField()
 	order = models.ForeignKey(orders,on_delete=models.CASCADE)
+
+class warehouses(models.Model):
+	wh_id = models.IntegerField(primary_key=True)
+	xlocation = models.IntegerField()
+	ylocation = models.IntegerField()

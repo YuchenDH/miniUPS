@@ -10,9 +10,10 @@
 #include <boost/cstdint.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <pqxx/pqxx>
+#include <ctime>
+#include <unordered_map>
 #include "packedmessage.h"
 #include "db.h"
-#include "packedmessage.h"
 #include "ups.pb.h"
 #include "au.pb.h"
 
@@ -65,10 +66,19 @@ private:
   PackedMessage<au::A2U> packed_a2u;
   PackedMessage<au::U2A> packed_u2a;
   
+  std::unordered_map<int,time_t> truck_ready;
   UpsServer(asio::io_service& world, asio::io_service& amz, db::dbPointer database) : amz_sock(amz), world_sock(world), db(database) {
 
   }
-  
+  long gen_package_id(long oreder_id){
+    time_t nowtime;  
+    nowtime = time(NULL); 
+    char tmp[64];   
+    strftime(tmp,sizeof(tmp),"%Y%m%d",localtime(&nowtime));
+    std::string res(tmp); 
+    res+=std::to_string(oreder_id);
+    return std::stol(res);
+  }
   void connect_world(){
     //handle connection to world with world_sock;
     v4::endpoint world_ep(asio::ip::address::from_string("127.0.0.1"), 12345);
@@ -180,43 +190,82 @@ private:
       //has error, handle it
     }
     else{
+      //process UDelivaryMade
       for(int i=0 ;i<ures->delivered_size();++i){
         int truck_id = ures->delivered(i)->truckid();
         long package_id = ures->delivered(i)->packageid();
+        std::string ins("update search_orders set status=5 where tracking_num = ");
+        ins+=std::to_string(package_id);ins+=";";
+        db->update(ins);
         //update db based on pid(tracking num) and truckid
         
         return NULL;
       }
       U2A response = new au::U2A();
+      //process UFinished
       for(int i=0 ;i<ures->completions_size();++i){
         int truck_id = ures->completions(i)->truckid();
+        int status = db->get_truck_status(truck_id);//0:free/idle 1:ready 2:pickup 3:wait for loading 4:out of delivery
         int x = ures->completions(i)->x();
         int y = ures->completions(i)->y();
-        //update truck location
-        
-        //find whid based on location
-        int whid = findwhid(x,y);//need define
-        //set U2A
-        
+        if(status == 2){
+          //arrive at warehouse, need to load
+          
+          //set truck info
+          au::Truck * tr = new au::Truck();//need delete
+          tr->set_id(truck_id);
+          //tr->set_X(x);tr->set_Y(y);
+          au::U2Atruckarrive * temp = response->add_ta(); 
+          temp->set_allocated_truck(tr);
 
-        au::Truck * tr = new au::Truck();//need delete
-        tr->set_id(truck_id);tr->set_X(x);tr->set_Y(y);
-        au::U2Atruckarrive * temp = response->add_ta();
-        temp->set_allocated_truck(tr);
+          //set wh info
+          int whid = db->get_warehouse_id(x,y);
+          temp->set_whid(whid);
 
-        temp->set_whid(whid);
+          //set order info
+          std::vector<long> * res = db->get_oid_by_truckid(truck_id);//res need delete 
+          for(int i=0;i<res->size();++i){
+            temp->set_oids(i,res->at(i));
+          }
 
-        std::vector<long> * res = db->get_oid_by_truckid(truck_id);//res need delete
-        for(int i=0;i<res->size();++i){
-          temp->set_oids(i,res->at(i));
+          //set U2Agenpid
+          for(int i=0;i<res->size();++i){
+            au::U2Agenpid * gp = response->add_gp();
+            gp->set_oid(res->at(i));
+            gp->set_pid(db->get_pid_by_oid(res->at(i)));
+          }     
+          delete res;                     
         }
-        delete res;
+        else if(status == 4){
+          //finished delivery, truck is free now
+          //update truck status and location
+          std::string ins("update search_trucks set status = 0,xlocation=");
+          ins+=std::to_string(x);
+          ins+=",ylocation=";
+          ins+=std::to_string(y);
+          ins+=" where truck_id = ";
+          ins+=std::to_string(truck_id);
+          ins+=";";
+          db->update(ins);
+        }
+        else{
+          //something wrong happen
+          
+        }  
       }
       return response;    
     }
   }
-  void freeU2A(){
+  void freeU2A(U2A response){
     //free memory allocated during prepare U2A
+    for(int i=0;i<response->ta_size();++i){
+      delete response->gp(i);
+    }
+    for(int i=0;i<response->gp_size();++i){
+      delete response->ta(i)->tr();
+      delete response->ta(i);
+    }
+    delete response;
   }
   void amz_handle_read_header(const boost::system::error_code* error) {
     if (!error) {
@@ -261,10 +310,139 @@ private:
     //unpack amz_readbuf
     if (packed_a2u.unpack(amz_readbuf)) {
         A2U a2u = packed_a2u.get_msg();
-        prepare_UCommand(a2u)
+        //
+        prepare_UCommand(a2u);
     }    
     //handle request
   }
   UCommand prepare_UCommand(A2U a2u){
- 
+    ups::UCommand * response = new ups::UCommand();
+
+    //process A2Upickuprequest
+    for(int i=0;i<a2u->pr_size();++i){
+      insert_order_to_db(a2u->mutable_pr(i));
+    }
+    int truck_id=-2;
+    while((truck_id = db->get_free_truck())<0){
+      //wait for free truck
+    }
+    int whid = bind_order_with_truck(truck_id);
+    
+    //set UGoPickup
+    if(whid==-1){
+      //no order is unattended
+    }
+    else{
+      ups::UGoPickup * temp = response->add_pickups();
+      temp->set_truckid(truck_id);
+      temp->set_whid(whid);
+    }
+    
+    
+    //process A2Utruckdepart
+    for(int i=0;i<a2u->td_size();++i){
+      update_db_by_td(a2u->mutable_td(i));
+    } 
+  }
+  int bind_order_with_truck(int truck_id){
+    int whid = db->get_oldest_order_whid();
+    std::vector<long> * temp = db->get_oid_by_whid(whid);//need delete
+    for(int i=0;i<temp->size();++i){
+      std::string ins("update search_orders set truck_id = ");
+      ins+=std::to_string(truck_id);
+      ins+=" where order_id = ";
+      ins+=std::to_string(temp->at(i));
+      ins+=";";
+    }
+    return whid;
+  }
+  void insert_order_to_db(au::A2Upickuprequest* pr){
+    long order_id = pr->oid();
+    long package_id = gen_package_id(oreder_id);
+    int whid = pr->wh()->id();
+    //store warehouse info
+    if(db->get_warehouse_id(pr->wh()->X(),pr->wh()->Y())<0){
+      //new warehouse info
+      if(db->add_warehouse(whid,pr->wh()->X(),pr->wh()->Y())<0){
+        std::cout<<"add warehouse failed\r\n";
+      }      
+    }
+
+    int des_x = pr->destination()->X();
+    int des_y = pr->destination()->Y();
+    if(pr->has_upsaccount()){
+      int uid = db->get_uid_by_username(pr->upsaccount());
+      if(uid<0){
+        //not a valid user
+        if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1)<0){
+          std::cout<<"add order failed\r\n";
+        }
+      }
+      if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1,uid)<0){
+        std::cout<<"add order failed\r\n";
+      }    
+    }
+    else{
+      if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1)<0){
+        std::cout<<"add order failed\r\n";
+      }    
+    }
+    for(int i=0;i<pr->items_size();++i){
+    db->add_item(pr->items(i)->des(),pr->items(i)->count(),order_id);
+    }   
+  }
+  void update_db_by_td(au::A2Utruckdepart* td){
+
+  }
+
+  // void update_db_by_pr(au::A2Upickuprequest* pr){
+  //   long oreder_id = pr->oid();
+  //   long package_id = gen_package_id(oreder_id);
+  //   int whid = pr->wh()->id();
+  //   int des_x = pr->destination()->X();
+  //   int des_y = pr->destination()->Y();
+  //   int truck_id = db->get_ready_truck(whid);
+  //   if(truck_id<0){
+  //     //no truck ready for this warehouse
+  //     truck_id = db->get_free_truck();
+
+  //     if(truck_id<0){
+  //       //no avaliable truck 
+  //       return ;
+  //     }
+  //     //insert to truck ready map      
+  //     std::unordered_map<int,time_t>::const_iterator got = truck_ready.find(truck_id);
+  //     if(got==truck_ready.end()){
+  //       truck_ready.insert(std::make_pair<int,time_t>(truck_id,get_current_time()));
+  //     }
+  //   }
+  //   else{
+  //     //have truck ready for this warehouse
+
+  //   }
+  //   //update orders table
+  //   if(pr->has_upsaccount()){
+  //     int uid = db->get_uid_by_username(pr->upsaccount());
+  //     if(uid<0){
+  //       //not a valid user
+  //       db->add_order(package_id,order_id,whid,des_x,des_y,1,truck_id);
+  //     }
+  //     db->add_order(package_id,order_id,whid,des_x,des_y,1,truck_id,uid);
+  //   }
+  //   else{
+  //     db->add_order(package_id,order_id,whid,des_x,des_y,1,truck_id);
+  //   }
+  //   //update items table
+  //   for(int i=0;i<pr->items_size();++i){
+  //     db->add_item(pr->items(i)->des(),pr->items(i)->count(),order_id);
+  //   }
+  //   //update truck table
+  //   std::string ins("update search_trucks set status=1 where truck_id = ");
+  //   ins=ins+std::to_string(truck_id)+";";
+  //   db->update(ins);
+  // }
+
+  time_t get_current_time(){
+    return time(NULL)
+  }
 }
