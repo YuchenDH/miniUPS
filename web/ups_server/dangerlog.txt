@@ -1,0 +1,27 @@
+=======dangerlog=======
+
+=========Memo==========
+
+1. General structure of the backend ups server
+   Our ups server utilized boost asio. It uses two boost::io_service
+   to communicate with world and amazon server separately.
+
+   The ups server class has two seperated set of functions and private
+   fields in order to isolate data from/for world and amazon. Since
+   handling request/response from world often results in sending info
+   to amazon, we have to make the communication asynchronized so that
+   the sending request will not be blocked by read() function call.
+
+   We are expecting situations where the average request/time is much
+   smaller than our processing speed so we do not need to use multiple
+   thread on each side of communication (comparing to stock market
+   server). We only use one instance of ups server handling the two
+   io_service. The only concurrency we need to handle is therefore the
+   database's dirty read problem. This is appropriately (though not 
+   very dedicately) handled by adding a mutex lock to all database
+   related handling process
+
+   We can still further parallelize our server by adding more
+   UpsServer instances with more io_service and threads. However under
+   current situation we believe one instance is already more than
+   enough.

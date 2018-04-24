@@ -10,7 +10,6 @@
 #include <boost/asio.hpp>
 #include <boost/shared_ptr.hpp>
 
-
 // Database server. The constructor starts it listening on the given
 // port with the given io_service.
 //

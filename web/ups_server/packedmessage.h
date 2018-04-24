@@ -15,14 +15,13 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/cstdint.hpp>
 
-
 typedef std::vector<boost::uint8_t> data_buffer;
 
 
 // A generic function to show contents of a container holding byte data 
 // as a string with hex representation for each byte.
 //
-template <class CharContainer>
+template<class CharContainer>
 std::string show_hex(const CharContainer& c)
 {
     std::string hex;

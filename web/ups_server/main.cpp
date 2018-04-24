@@ -1,33 +1,33 @@
-#include <iostream>
-#include <string>
-#include <cstdio>
-#include <cstdlib>
-#include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
-#include "server.h"
+#include <boost/shared_ptr.hpp>
+#include <string>
+#include <cstdlib>
+#include "ups.pb.h"
+#include "au.pb.h"
 #include "packedmessage.h"
-#include "proto/ups.pb.h"
-#include "proto/au.pb.h"
+#include "ups_server.h"
+
 
 using namespace std;
 namespace asio = boost::asio;
 
+void thread(asio::io_service & s) {
+  s.run();
+}
 
-int main(int argc, const char* argv[])
-{
-    unsigned port = 4050;
-    if (argc > 1)
-        port = atoi(argv[1]);
-    cout << "Serving on port " << port << endl;
-
-    try {
-        asio::io_service io_service;
-        DbServer server(io_service, 4050);
-        io_service.run();
-    }
-    catch (std::exception& e) {
-        cerr << e.what() << endl;
-    }
-
-    return 0;
+int main(int argc, const char* argv[]) {
+  db::dbPointer db_ptr = db::create("upsweb", "postgres", "950703");
+  if (db_ptr->connect_db()) {
+    cerr << "Error when connecting to db\n";
+    return 1;
+  }
+  
+  asio::io_service io[2];
+  boost::shared_ptr<UpsServer> server_ptr = UpsServer::create(io[0], io[1], db_ptr);
+  server_ptr->start();
+  
+  boost::thread t{thread, io[0]};
+  io[1].run();
+  t.joint();
+  return 0;
 }
