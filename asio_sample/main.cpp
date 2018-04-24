@@ -248,6 +248,12 @@ private:
           ins+=std::to_string(truck_id);
           ins+=";";
           db->update(ins);
+          if(truckshortage){
+            ups::UCommand * temp = new ups::UCommand();
+            assign_truck(temp);
+            //send UCommand
+            delete UCommand;
+          }
         }
         else{
           //something wrong happen
@@ -324,6 +330,9 @@ private:
       temp->set_truckid(truck_id);
       temp->set_whid(whid);      
     }
+    if(db->has_unprocessed_order() && (truck_id = db->get_free_truck())<0){
+      truckshortage=true;
+    }
   }
   UCommand prepare_UCommand(A2U a2u){
     ups::UCommand * response = new ups::UCommand();
@@ -332,11 +341,7 @@ private:
     for(int i=0;i<a2u->pr_size();++i){
       insert_order_to_db(a2u->mutable_pr(i));
     }
-    int truck_id=-2;
-    if((truck_id = db->get_free_truck())<0){
-      //wait for free truck
-    }
-    
+    assign_truck(response);
     
     // while(db->check_order_truck() && ((truck_id = db->get_free_truck()) > 0)){
     //   int whid = db->get_oldest_no_truck();
