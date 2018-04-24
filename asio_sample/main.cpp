@@ -316,8 +316,14 @@ private:
     }    
     //handle request
   }
-  void assign_truck(){
-    
+  void assign_truck(ups::UCommand * response){
+    int truck_id = -1;
+    while(db->has_unprocessed_order() && (truck_id = db->get_free_truck())>0){
+      int whid = bind_order_with_truck(truck_id);
+      ups::UGoPickup * temp = response->add_pickups();
+      temp->set_truckid(truck_id);
+      temp->set_whid(whid);      
+    }
   }
   UCommand prepare_UCommand(A2U a2u){
     ups::UCommand * response = new ups::UCommand();
@@ -330,24 +336,26 @@ private:
     if((truck_id = db->get_free_truck())<0){
       //wait for free truck
     }
-    int whid = bind_order_with_truck(truck_id);
     
-    //set UGoPickup
-    if(whid==-1){
-      //no order is unattended
-    }
-    else{
-      ups::UGoPickup * temp = response->add_pickups();
-      temp->set_truckid(truck_id);
-      temp->set_whid(whid);
-    }
     
+    // while(db->check_order_truck() && ((truck_id = db->get_free_truck()) > 0)){
+    //   int whid = db->get_oldest_no_truck();
+    //   db->update_order_to_pickup_by_whid(whid);
+    //   //int whid = bind_order_with_truck(truck_id);
+    // }
+
+    // if (db->check_order_truck()) {
+    //   truckshortage = true;
+    // } else {
+    //   truckshortage = false;
+    // }    
     
     //process A2Utruckdepart
     for(int i=0;i<a2u->td_size();++i){
       update_db_by_td(a2u->mutable_td(i));
     } 
   }
+
   int bind_order_with_truck(int truck_id){
     int whid = db->get_oldest_order_whid();
     std::vector<long> * temp = db->get_oid_by_whid(whid);//need delete
@@ -360,6 +368,7 @@ private:
     }
     return whid;
   }
+
   void insert_order_to_db(au::A2Upickuprequest* pr){
     long order_id = pr->oid();
     long package_id = gen_package_id(oreder_id);
