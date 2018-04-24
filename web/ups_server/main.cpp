@@ -6,7 +6,7 @@
 #include "proto/au.pb.h"
 #include "packedmessage.h"
 #include "ups_server.h"
-
+#include "config.h"
 
 using namespace std;
 namespace asio = boost::asio;
@@ -28,6 +28,6 @@ int main(int argc, const char* argv[]) {
   
   boost::thread t{thread, io[0]};
   io[1].run();
-  t.joint();
+  t.join();
   return 0;
 }

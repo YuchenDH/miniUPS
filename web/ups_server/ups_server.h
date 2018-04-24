@@ -16,7 +16,7 @@
 #include "db.h"
 #include "proto/ups.pb.h"
 #include "proto/au.pb.h"
-
+#include "config.h"
 #define NUMTRUCKS 5
 #define RECONNECTID 10
 #define AMZ_ADDRESS "127.0.0.1"
@@ -418,7 +418,7 @@ private:
     deliveries->set_truckid(truck_id);
     std::vector<db::package*>* packages = db->get_package_by_truck();
     for(int i=0;i<packages->size();++i){
-      ups::UDelivaryLocation package = deliveries->add_packages();
+      ups::UDeliveryLocation package = deliveries->add_packages();
       package->set_packageid(packages->at(i)->package_id);
       package->set_x(packages->at(i)->x);
       package->set_y(packages->at(i)->y);
