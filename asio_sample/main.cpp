@@ -124,7 +124,7 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
         //update truck location
         
         //find whid based on location
-        int whid = findwhid(x,y);
+        int whid = findwhid(x,y);//need define
         //set U2A
         
 
@@ -143,7 +143,9 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
       }
       return response;    
     }
-
+  }
+  void freeU2A(){
+    //free memory allocated during prepare U2A
   }
   void amz_handle_read_header(const boost::system::error_code* error) {
     if (!error) {
@@ -180,8 +182,12 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
   
   void amz_handle_request() {
     //unpack amz_readbuf
-
+    if (packed_a2u.unpack(amz_readbuf)) {
+        A2U a2u = packed_a2u.get_msg();
+        prepare_UCommand(a2u)
+    }    
     //handle request
   }
+  UCommand prepare_UCommand(A2U a2u){
  
 }
