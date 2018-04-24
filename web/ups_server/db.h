@@ -11,6 +11,11 @@
 
 using namespace pqxx;
 
+struct package{
+  int x;
+  int y;
+  long package_id;
+};
 class db : public boost::enable_shared_from_this<db> {
 	//add function:0 success, 1, violate unique rule, -1 add fail
  private:
@@ -413,5 +418,22 @@ class db : public boost::enable_shared_from_this<db> {
     else{
       return false;
     }
+  }
+  std::vector<package*> * get_package_by_truck(int truck_id){
+    std::vector<package*> * res = new std::vector<package*>();
+    std::string ins("select tracking_num,des_x,des_y from search_orders where status = 3 and truck_id =");
+    ins+=std::to_string(truck_id);
+    ins+=";";
+    work W(*C);
+    result R( W.exec( ins ));W.commit();
+    result::const_iterator c = R.begin();
+    for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
+      package temp;
+      temp.package_id=c[0].as<long>();
+      temp.x=c[1].as<int>();
+      temp.y=c[2].as<int>();
+      res->push_back(&temp);
+    }     
+    return res;
   }
 };

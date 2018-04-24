@@ -32,12 +32,12 @@ class UpsServer : public boost::enable_shared_from_this<UpsServer> {
 public:
   typedef boost::shared_ptr<UpsServer> Pointer;
   /*
-  typedef boost::shared_ptr<ups::UCommands> CommandsPointer;
+  typedef boost::shared_ptr<ups::UCommandss> CommandsPointer;
   typedef boost::shared_ptr<ups::UResponse> ResponsesPointer;
   typedef boost::shared_ptr<au::A2U> A2UPointer;
   typedef boost::shared_ptr<au::U2A> U2APointer;
   */
-  typedef boost::shared_ptr<ups:UCommands> UCommands;
+  typedef boost::shared_ptr<ups:UCommandss> UCommandss;
   typedef boost::shared_ptr<ups::UResponses> UResponses;
   typedef boost::shared_ptr<au::A2U> A2U;
   typedef boost::shared_ptr<au::U2A> U2A;
@@ -61,7 +61,7 @@ private:
   data_buffer world_readbuf;
   std::mutex db_lock;
 
-  PackedMessage<ups::UCommand> packed_uc;
+  PackedMessage<ups::UCommands> packed_uc;
   PackedMessage<ups::UResponses> packed_ur;
   PackedMessage<au::A2U> packed_a2u;
   PackedMessage<au::U2A> packed_u2a;
@@ -182,18 +182,19 @@ private:
     //unpack world_readbuf
     if (packed_ur.unpack(world_readbuf)) {
         UResponses ures = packed_ur.get_msg();
-        U2A resp = prepare_U2A(ures);
-	//assert resp is not empty (happens when world sent a "deliver_made"-only response)
+        ups::UCommands * temp = NULL;
+        U2A resp = prepare_U2A(ures,temp);
+	      //assert resp is not empty (happens when world sent a "deliver_made"-only response)
 
 	
-	//pack message and send to amz
-	vector<uint8_t> writebuf;
-	PackedMessage<au::U2A> resp_msg(resp);
-	resp_msg.pack(writebuf);
-	send_msg(amz_sock, writebuf);
+	      //pack message and send to amz
+	      vector<uint8_t> writebuf;
+	      PackedMessage<au::U2A> resp_msg(resp);
+	      resp_msg.pack(writebuf);
+	      send_msg(amz_sock, writebuf);
     }
   }
-  U2A prepare_U2A(UResponse ures){
+  U2A prepare_U2A(UResponse ures,ups::UCommands * temp){
     if(ures->has_error()){
       //has error, handle it
       cerr << "Error msg in world response: " << ures->error() << endl;
@@ -207,8 +208,7 @@ private:
         ins+=std::to_string(package_id);ins+=";";
         db->update(ins);
         //update db based on pid(tracking num) and truckid
-        
-        return NULL;
+        return U2A();//need thinking
       }
       U2A response(new au::U2A());
 
@@ -219,7 +219,7 @@ private:
         int status = db->get_truck_status(truck_id);//0:free/idle 1:ready 2:pickup 3:wait for loading 4:out of delivery
         int x = ures->completions(i)->x();
         int y = ures->completions(i)->y();
-        if(status == 2){
+        if(status == 2){//2:pick up
           //arrive at warehouse, need to load
           
           //set truck info
@@ -247,7 +247,7 @@ private:
           }     
           delete res;                     
         }
-        else if(status == 4){
+        else if(status == 4){//4:delivered
           //finished delivery, truck is free now
           //update truck status and location
           std::string ins("update search_trucks set status = 0,xlocation=");
@@ -259,10 +259,7 @@ private:
           ins+=";";
           db->update(ins);
           if(truckshortage){
-            ups::UCommand * temp = new ups::UCommand();
             assign_truck(temp);
-            //send UCommand
-            delete UCommand;
           }
         }
         else{
@@ -326,17 +323,17 @@ private:
   void amz_handle_request() {
     if (packed_a2u.unpack(amz_readbuf)) {
         A2U ares = packed_a2u.get_msg();
-        UCommands resp = prepare_UCommands(ares);
+        UCommandss resp = prepare_UCommandss(ares);
 
-	//pack message and send to amz
-	vector<uint8_t> writebuf;
-	PackedMessage<au::UCommands> resp_msg(resp);
-	resp_msg.pack(writebuf);
-	send_msg(world_sock, writebuf);
+	     //pack message and send to amz
+	      vector<uint8_t> writebuf;
+	      PackedMessage<au::UCommandss> resp_msg(resp);
+	      resp_msg.pack(writebuf);
+	      send_msg(world_sock, writebuf);
     }
   }
 
-  void assign_truck(ups::UCommand * response){
+  void assign_truck(ups::UCommands * response){
     int truck_id = -1;
     while(db->has_unprocessed_order() && (truck_id = db->get_free_truck())>0){
       int whid = bind_order_with_truck(truck_id);
@@ -348,27 +345,15 @@ private:
       truckshortage=true;
     }
   }
-  UCommand prepare_UCommand(A2U a2u){
-    ups::UCommand * response = new ups::UCommand();
+  UCommands prepare_UCommands(A2U a2u){
+    ups::UCommands * response = new ups::UCommands();
 
     //process A2Upickuprequest
     for(int i=0;i<a2u->pr_size();++i){
       insert_order_to_db(a2u->mutable_pr(i));
     }
     assign_truck(response);
-    
-    // while(db->check_order_truck() && ((truck_id = db->get_free_truck()) > 0)){
-    //   int whid = db->get_oldest_no_truck();
-    //   db->update_order_to_pickup_by_whid(whid);
-    //   //int whid = bind_order_with_truck(truck_id);
-    // }
 
-    // if (db->check_order_truck()) {
-    //   truckshortage = true;
-    // } else {
-    //   truckshortage = false;
-    // }    
-    
     //process A2Utruckdepart
     for(int i=0;i<a2u->td_size();++i){
       update_db_by_td(a2u->mutable_td(i));
@@ -423,8 +408,26 @@ private:
     db->add_item(pr->items(i)->des(),pr->items(i)->count(),order_id);
     }   
   }
-  void update_db_by_td(au::A2Utruckdepart* td){
+  void update_db_by_td(au::A2Utruckdepart* td,ups::UCommands * temp){
+    //modify UCommand
+    int truck_id = td->tr()->id();
+    ups::UGoDeliver deliveries = temp->add_deliveries();
+    deliveries->set_truckid(truck_id);
+    std::vector<db::package*>* packages = db->get_package_by_truck();
+    for(int i=0;i<packages->size();++i){
+      ups::UDelivaryLocation package = deliveries->add_packages();
+      package->set_packageid(packages->at(i)->package_id);
+      package->set_x(packages->at(i)->x);
+      package->set_y(packages->at(i)->y);
+    }
+    // update db
+    std::string ins("update search_trucks set status = 4 where truck_id =");
+    ins=ins+std::to_string(truck_id)+" ;";
+    db->update(ins);
 
+    std::string ins2("update search_orders set status = 4 where status=3 and truck_id =");
+    ins=ins+std::to_string(truck_id)+" ;";
+    db->update(ins);
   }
 
   // void update_db_by_pr(au::A2Upickuprequest* pr){
