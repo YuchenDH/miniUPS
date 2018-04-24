@@ -245,7 +245,10 @@ private:
             gp->set_oid(res->at(i));
             gp->set_pid(db->get_pid_by_oid(res->at(i)));
           }     
-          delete res;                     
+          delete res;
+          std::string ins("update search_trucks set status = 3 where truck_id =");
+          ins=ins + std::to_string(truck_id)+";";
+          db->update(ins);                     
         }
         else if(status == 4){//4:delivered
           //finished delivery, truck is free now
