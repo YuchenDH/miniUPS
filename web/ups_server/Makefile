@@ -4,23 +4,19 @@
 PROTOBUF_CFLAGS = `pkg-config --cflags protobuf`
 PROTOBUF_LFLAGS = `pkg-config --libs protobuf`
 BOOST_LFLAGS = -lboost_system
+PQXX_LFLAGS = -lpqxx
 
+server_main: main.o ups.pb.o au.pb.o 
+	g++ -o server_main main.o ups.pb.o au.pb.o\
+		$(PROTOBUF_LFLAGS) $(BOOST_LFLAGS) $(PQXX_LFLAGS)
 
-server_main: server_main.o stringdb.pb.o db_server.o 
-	g++ -o server_main server_main.o db_server.o stringdb.pb.o \
-		$(PROTOBUF_LFLAGS) $(BOOST_LFLAGS)
+ups.pb.o: proto/ups.pb.cc
+	g++ -c proto/ups.pb.cc $(PROTOBUF_CFLAGS)
 
-stringdb.pb.o: stringdb.proto
-	protoc --cpp_out=. --python_out=. stringdb.proto
-	g++ -c stringdb.pb.cc $(PROTOBUF_CFLAGS)
+au.pb.o: proto/au.pb.cc
+	g++ -c proto/au.pb.cc $(PROTOBUF_CFLAGS)
 
 HEADERS = $(wildcard *.h)
 
-%.o: %.cpp stringdb.pb.o ${HEADERS}
+%.o: %.cpp proto/ups.pb.o proto/au.pb.o ${HEADERS}
 	g++ -c $<
-
-clean:
-	rm -f *.pb.*
-	rm -f *_pb2.*
-	rm -f *.o 
-	rm -f server_main 
