@@ -67,6 +67,7 @@ private:
   PackedMessage<au::U2A> packed_u2a;
   
   std::unordered_map<int,time_t> truck_ready;
+  bool truckshortage = false;
   UpsServer(asio::io_service& world, asio::io_service& amz, db::dbPointer database) : amz_sock(amz), world_sock(world), db(database) {
 
   }
@@ -315,6 +316,9 @@ private:
     }    
     //handle request
   }
+  void assign_truck(){
+    
+  }
   UCommand prepare_UCommand(A2U a2u){
     ups::UCommand * response = new ups::UCommand();
 
@@ -323,7 +327,7 @@ private:
       insert_order_to_db(a2u->mutable_pr(i));
     }
     int truck_id=-2;
-    while((truck_id = db->get_free_truck())<0){
+    if((truck_id = db->get_free_truck())<0){
       //wait for free truck
     }
     int whid = bind_order_with_truck(truck_id);

@@ -289,7 +289,7 @@ class db : public boost::enable_shared_from_this<db> {
   int get_oldest_order_whid(){
     std::string ins("select wh_id from search_orders where truck_id=-1 order by date;");
     work W(*C)
-    result R( W.exec( ins )); 
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<int>();
@@ -303,7 +303,7 @@ class db : public boost::enable_shared_from_this<db> {
     std::string ins("SELECT order_id FROM search_orders WHERE truck_id = -1 and wh_id = ");
     ins+=std::to_string(wh_id);ins+=";";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
       res->push_back(c[0].as<long>());
     } 
@@ -314,7 +314,7 @@ class db : public boost::enable_shared_from_this<db> {
     std::string ins("SELECT order_id FROM search_orders WHERE status = 1 and truck_id = ");
     ins+=std::to_string(truck_id);ins+=";";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
       res->push_back(c[0].as<long>());
     } 
@@ -324,7 +324,7 @@ class db : public boost::enable_shared_from_this<db> {
     //-1 means not avaliable truck
     std::string ins("SELECT truck_id FROM search_trucks WHERE status = 0");
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<int>();
@@ -337,7 +337,7 @@ class db : public boost::enable_shared_from_this<db> {
     std::string ins("select search_trucks.truck_id from search_orders,search_trucks where search_trucks.status = 1 and search_orders.truck_id = search_trucks.truck_id and search_orders.wh_id = ");
     ins+=std::to_string(whid);ins+=";";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<int>();
@@ -351,7 +351,7 @@ class db : public boost::enable_shared_from_this<db> {
     std::string ins("SELECT id FROM weblog_realuser WHERE username = \'");
     ins+=username;ins+="\';";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<int>();
@@ -364,7 +364,7 @@ class db : public boost::enable_shared_from_this<db> {
     std::string ins("SELECT status FROM search_trucks WHERE truck_id = ");
     ins+=std::to_string(truck_id);ins+=";";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<int>();
@@ -380,7 +380,7 @@ class db : public boost::enable_shared_from_this<db> {
     ins+=std::to_string(y);
     ins+=";";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<int>();
@@ -393,7 +393,7 @@ class db : public boost::enable_shared_from_this<db> {
     std::string ins("SELECT tracking_num FROM search_orders WHERE order_id = ");
     ins+=std::to_string(oid);ins+=";";
     work W(*C);
-    result R( W.exec( ins ));
+    result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
       return c[0].as<long>();
@@ -401,5 +401,17 @@ class db : public boost::enable_shared_from_this<db> {
     else{
       return -1;
     }     
+  }
+  bool has_unprocessed_order(){
+    std::string ins("select order_id from search_orders where truck_id=-1;");
+    work W(*C);
+    result R( W.exec( ins ));W.commit();
+    result::const_iterator c = R.begin();
+    if(c != R.end()){
+      return true;
+    }
+    else{
+      return false;
+    }
   }
 };
