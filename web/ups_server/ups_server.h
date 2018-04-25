@@ -24,6 +24,8 @@
 
 using namespace std;
 namespace asio = boost::asio;
+//namespace au = proto::au;
+//namespace ups = proto::ups;
 using asio::ip::tcp;
 using boost::uint8_t;
 typedef std::vector<boost::uint8_t> data_buffer;
@@ -37,7 +39,7 @@ public:
   typedef boost::shared_ptr<au::A2U> A2UPointer;
   typedef boost::shared_ptr<au::U2A> U2APointer;
   */
-  typedef boost::shared_ptr<ups:UCommandss> UCommandss;
+  typedef boost::shared_ptr<ups::UCommands> UCommands;
   typedef boost::shared_ptr<ups::UResponses> UResponses;
   typedef boost::shared_ptr<au::A2U> A2U;
   typedef boost::shared_ptr<au::U2A> U2A;

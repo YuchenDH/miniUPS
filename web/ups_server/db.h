@@ -293,7 +293,7 @@ class db : public boost::enable_shared_from_this<db> {
   }
   int get_oldest_order_whid(){
     std::string ins("select wh_id from search_orders where truck_id=-1 order by date;");
-    work W(*C)
+    work W(*C);
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
