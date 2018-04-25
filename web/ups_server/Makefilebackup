@@ -3,7 +3,7 @@
 #
 PROTOBUF_CFLAGS = `pkg-config --cflags protobuf`
 PROTOBUF_LFLAGS = `pkg-config --libs protobuf`
-BOOST_LFLAGS = -lboost_system -lboost_thread
+BOOST_LFLAGS = -lboost_system
 PQXX_LFLAGS = -lpqxx -lpq
 
 server_main: main.o ups.pb.o au.pb.o 
@@ -18,12 +18,8 @@ au.pb.o: proto/au.pb.cc
 
 HEADERS = $(wildcard *.h)
 
-#main.o:main.cpp packedmessage.h db.h ups_server.h proto/ups.pb.h proto/au.pb.h
-#	g++ -std=c++11 main.cpp -o main.o $
+main.o:main.cpp packedmessage.h db.h ups_server.h proto/ups.pb.o proto/au.pb.h
+	g++ -std=c++11 main.cpp -o main.o -lpq -lpqxx -lboost_system
 
-%.o: %.cpp ups.pb.o au.pb.o ${HEADERS}
+%.o: %.cpp proto/ups.pb.o proto/au.pb.o ${HEADERS}
 	g++ -std=c++11 $<
-server: main.cpp packedmessage.h db.h ups_server.h proto/ups.pb.h proto/au.pb.h proto/ups.pb.cc proto/au.pb.cc
-	g++ -o server -std=c++11 -Wall -Werror -ggdb3 main.cpp $(BOOST_LFLAGS) $(PQXX_LFLAGS) $(PROTOBUF_LFLAGS)
-#proxy: proxy.cpp proxy.h
-#	g++  -o proxy -std=gnu++11 -Wall -Werror -ggdb3 proxy.cpp -lpthread

@@ -183,7 +183,8 @@ private:
     //unpack world_readbuf
     if (packed_ur.unpack(world_readbuf)) {
       URpointer ures = packed_ur.get_msg();
-      ups::UCommands * temp = NULL;
+      // ups::UCommands * temp = NULL;
+      UCpointer temp(new ups::UCommands());
       U2Apointer resp = prepare_U2A(ures, temp);
       //assert resp is not empty (happens when world sent a "deliver_made"-only response)
 ///	
@@ -204,15 +205,16 @@ private:
       }
     }
   }
-  U2Apointer prepare_U2A(URpointer ures, ups::UCommands * temp){
+  U2Apointer prepare_U2A(URpointer ures, UCpointer temp){
     if(ures->has_error()){
       //has error, handle it
       cerr << "Error msg in world response: " << ures->error() << endl;
+      return NULL;
     }
     else{
       //process UDelivaryMade
       for(int i=0 ;i<ures->delivered_size();++i){
-        int truck_id = ures->delivered(i).truckid();
+	// int truck_id = ures->delivered(i).truckid();
         long package_id = ures->delivered(i).packageid();
         std::string ins("update search_orders set status=5 where tracking_num = ");
         ins+=std::to_string(package_id);ins+=";";
@@ -245,12 +247,12 @@ private:
 
           //set order info
           std::vector<long> * res = dblink->get_oid_by_truckid(truck_id);//res need delete 
-          for(int i=0;i<res->size();++i){
+          for(size_t i=0;i<res->size();++i){
             temp->set_oids(i,res->at(i));
           }
 
           //set U2Agenpid
-          for(int i=0;i<res->size();++i){
+          for(size_t i=0;i<res->size();++i){
             au::U2Agenpid * gp = response->add_gp();
             gp->set_oid(res->at(i));
             gp->set_pid(dblink->get_pid_by_oid(res->at(i)));
@@ -347,7 +349,7 @@ private:
     }
   }
   
-  void assign_truck(ups::UCommands * response){
+  void assign_truck(UCpointer response){
     int truck_id = -1;
     while(dblink->has_unprocessed_order() && (truck_id = dblink->get_free_truck())>0){
       int whid = bind_order_with_truck(truck_id);
@@ -361,7 +363,8 @@ private:
   }
   
   UCpointer prepare_UCommands(A2Upointer a2u){
-    ups::UCommands * response = new ups::UCommands();
+    // ups::UCommands * response = new ups::UCommands();
+    UCpointer response(new ups::UCommands());
 
     //process A2Upickuprequest
     for(int i=0;i<a2u->pr_size();++i){
@@ -372,13 +375,14 @@ private:
     //process A2Utruckdepart
     for(int i=0;i<a2u->td_size();++i){
       update_dblink_by_td(a2u->mutable_td(i),response);
-    } 
+    }
+    return response;
   }
 
   int bind_order_with_truck(int truck_id){
     int whid = dblink->get_oldest_order_whid();
     std::vector<long> * temp = dblink->get_oid_by_whid(whid);//need delete
-    for(int i=0;i<temp->size();++i){
+    for(size_t i=0;i<temp->size();++i){
       std::string ins("update search_orders set truck_id = ");
       ins+=std::to_string(truck_id);
       ins+=" where order_id = ";
@@ -425,13 +429,13 @@ private:
     dblink->add_item(pr->items(i).des(),pr->items(i).count(),order_id);
     }   
   }
-  void update_dblink_by_td(au::A2Utruckdepart* td,ups::UCommands * temp){
+  void update_dblink_by_td(au::A2Utruckdepart* td,UCpointer temp){
     //modify UCommand
     int truck_id = td->tr().id();
     ups::UGoDeliver * deliveries = temp->add_deliveries();
     deliveries->set_truckid(truck_id);
     std::vector<package*>* packages = dblink->get_package_by_truck(truck_id);
-    for(int i=0;i<packages->size();++i){
+    for(size_t i=0;i<packages->size();++i){
       ups::UDeliveryLocation * package = deliveries->add_packages();
       package->set_packageid(packages->at(i)->package_id);
       package->set_x(packages->at(i)->x);
