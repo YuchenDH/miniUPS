@@ -184,7 +184,8 @@ private:
     if (packed_ur.unpack(world_readbuf)) {
       URpointer ures = packed_ur.get_msg();
       // ups::UCommands * temp = NULL;
-      UCpointer temp(new ups::UCommands());
+      ups::UCommands test;
+      UCpointer temp(test.New());
       U2Apointer resp = prepare_U2A(ures, temp);
       //assert resp is not empty (happens when world sent a "deliver_made"-only response)
 ///	

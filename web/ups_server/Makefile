@@ -25,6 +25,6 @@ HEADERS = $(wildcard *.h)
 %.o: %.cpp ups.pb.o au.pb.o ${HEADERS}
 	g++ -std=c++11 $<
 server: main.cpp packedmessage.h db.h ups_server.h ups.pb.h au.pb.h ups.pb.cc au.pb.cc
-	g++ -o server -std=c++11 -Wall -Werror -ggdb3 main.cpp $(BOOST_LFLAGS) $(PQXX_LFLAGS) $(PROTO_LFLAGS)
+	g++ -o server -std=c++11 -Wall -Werror -ggdb3 main.cpp au.pb.cc ups.pb.cc $(BOOST_LFLAGS) $(PQXX_LFLAGS) $(PROTO_LFLAGS)
 #proxy: proxy.cpp proxy.h
 #	g++  -o proxy -std=gnu++11 -Wall -Werror -ggdb3 proxy.cpp -lpthread
