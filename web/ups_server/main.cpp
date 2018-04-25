@@ -1,5 +1,6 @@
 #include <boost/asio.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 #include <string>
 #include <cstdlib>
 #include "proto/ups.pb.h"
@@ -26,7 +27,7 @@ int main(int argc, const char* argv[]) {
   boost::shared_ptr<UpsServer> server_ptr = UpsServer::create(io[0], io[1], db_ptr);
   server_ptr->start();
   
-  boost::thread t{thread, io[0]};
+  boost::thread t(boost::bind(&thread, boost::ref(io[0])));
   io[1].run();
   t.join();
   return 0;

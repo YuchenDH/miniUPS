@@ -1,5 +1,5 @@
 #ifndef __CONFIG_H__
-#defien __CONFIG_J__
+#define __CONFIG_H__
 
 #define DEBUG true
 

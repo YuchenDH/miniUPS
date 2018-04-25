@@ -19,7 +19,7 @@ au.pb.o: proto/au.pb.cc
 HEADERS = $(wildcard *.h)
 
 main.o:main.cpp packedmessage.h db.h ups_server.h proto/ups.pb.o proto/au.pb.h
-	g++ -std=c++11 main.cpp -o main.o
+	g++ -std=c++11 main.cpp -o main.o -lpq -lpqxx -lboost_system
 
 %.o: %.cpp proto/ups.pb.o proto/au.pb.o ${HEADERS}
 	g++ -std=c++11 $<
