@@ -196,7 +196,7 @@ private:
 	      send_msg(amz_sock, writebuf);
     }
   }
-  U2A prepare_U2A(UResponse ures,ups::UCommands * temp){
+  U2A prepare_U2A(UResponses ures,ups::UCommands * temp){
     if(ures->has_error()){
       //has error, handle it
       cerr << "Error msg in world response: " << ures->error() << endl;
@@ -204,8 +204,8 @@ private:
     else{
       //process UDelivaryMade
       for(int i=0 ;i<ures->delivered_size();++i){
-        int truck_id = ures->delivered(i)->truckid();
-        long package_id = ures->delivered(i)->packageid();
+        int truck_id = ures->delivered(i).truckid();
+        long package_id = ures->delivered(i).packageid();
         std::string ins("update search_orders set status=5 where tracking_num = ");
         ins+=std::to_string(package_id);ins+=";";
         db->update(ins);
@@ -217,10 +217,10 @@ private:
       //process UFinished
 
       for(int i=0 ;i<ures->completions_size();++i){
-        int truck_id = ures->completions(i)->truckid();
+        int truck_id = ures->completions(i).truckid();
         int status = db->get_truck_status(truck_id);//0:free/idle 1:ready 2:pickup 3:wait for loading 4:out of delivery
-        int x = ures->completions(i)->x();
-        int y = ures->completions(i)->y();
+        int x = ures->completions(i).x();
+        int y = ures->completions(i).y();
         if(status == 2){//2:pick up
           //arrive at warehouse, need to load
           
@@ -229,7 +229,7 @@ private:
           tr->set_id(truck_id);
           //tr->set_X(x);tr->set_Y(y);
           au::U2Atruckarrive * temp = response->add_ta(); 
-          temp->set_allocated_truck(tr);
+          temp->set_allocated_tr(tr);
 
           //set wh info
           int whid = db->get_warehouse_id(x,y);
@@ -278,13 +278,13 @@ private:
   void freeU2A(U2A response){
     //free memory allocated during prepare U2A
     for(int i=0;i<response->ta_size();++i){
-      delete response->gp(i);
+      delete response->mutable_gp(i);
     }
     for(int i=0;i<response->gp_size();++i){
-      delete response->ta(i)->tr();
-      delete response->ta(i);
+      //delete response->mutable_ta(i)->tr();
+      delete response->mutable_ta(i);
     }
-    delete response;
+    //delete response;
   }
   void amz_handle_read_header(const boost::system::error_code* error) {
     if (!error) {
@@ -328,11 +328,11 @@ private:
   void amz_handle_request() {
     if (packed_a2u.unpack(amz_readbuf)) {
         A2U ares = packed_a2u.get_msg();
-        UCommandss resp = prepare_UCommandss(ares);
+        UCommands resp = prepare_UCommandss(ares);
 
 	     //pack message and send to amz
 	      vector<uint8_t> writebuf;
-	      PackedMessage<au::UCommandss> resp_msg(resp);
+	      PackedMessage<au::UCommands> resp_msg(resp);
 	      resp_msg.pack(writebuf);
 	      send_msg(world_sock, writebuf);
     }
@@ -361,7 +361,7 @@ private:
 
     //process A2Utruckdepart
     for(int i=0;i<a2u->td_size();++i){
-      update_db_by_td(a2u->mutable_td(i));
+      update_db_by_td(a2u->mutable_td(i),response);
     } 
   }
 
@@ -380,47 +380,49 @@ private:
 
   void insert_order_to_db(au::A2Upickuprequest* pr){
     long order_id = pr->oid();
-    long package_id = gen_package_id(oreder_id);
-    int whid = pr->wh()->id();
+    long package_id = gen_package_id(order_id);
+    int whid = pr->wh().id();
     //store warehouse info
-    if(db->get_warehouse_id(pr->wh()->X(),pr->wh()->Y())<0){
+    if(db->get_warehouse_id(pr->wh().x(),pr->wh().y())<0){
       //new warehouse info
-      if(db->add_warehouse(whid,pr->wh()->X(),pr->wh()->Y())<0){
+      if(db->add_warehouse(whid,pr->wh().x(),pr->wh().y())<0){
         std::cout<<"add warehouse failed\r\n";
       }      
     }
 
-    int des_x = pr->destination()->X();
-    int des_y = pr->destination()->Y();
+    int des_x = pr->destination().x();
+    int des_y = pr->destination().y();
+    int count = pr->items_size();
+    std::string first_item(pr->items(0).des());
     if(pr->has_upsaccount()){
       int uid = db->get_uid_by_username(pr->upsaccount());
       if(uid<0){
         //not a valid user
-        if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1)<0){
+        if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1,first_item,count)<0){
           std::cout<<"add order failed\r\n";
         }
       }
-      if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1,uid)<0){
+      if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1,uid,first_item,count)<0){
         std::cout<<"add order failed\r\n";
       }    
     }
     else{
-      if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1)<0){
+      if(db->add_order(package_id,order_id,whid,des_x,des_y,1,-1,first_item,count)<0){
         std::cout<<"add order failed\r\n";
       }    
     }
     for(int i=0;i<pr->items_size();++i){
-    db->add_item(pr->items(i)->des(),pr->items(i)->count(),order_id);
+    db->add_item(pr->items(i).des(),pr->items(i).count(),order_id);
     }   
   }
   void update_db_by_td(au::A2Utruckdepart* td,ups::UCommands * temp){
     //modify UCommand
-    int truck_id = td->tr()->id();
-    ups::UGoDeliver deliveries = temp->add_deliveries();
+    int truck_id = td->tr().id();
+    ups::UGoDeliver * deliveries = temp->add_deliveries();
     deliveries->set_truckid(truck_id);
-    std::vector<db::package*>* packages = db->get_package_by_truck();
+    std::vector<package*>* packages = db->get_package_by_truck(truck_id);
     for(int i=0;i<packages->size();++i){
-      ups::UDeliveryLocation package = deliveries->add_packages();
+      ups::UDeliveryLocation * package = deliveries->add_packages();
       package->set_packageid(packages->at(i)->package_id);
       package->set_x(packages->at(i)->x);
       package->set_y(packages->at(i)->y);
@@ -434,4 +436,4 @@ private:
     ins=ins+std::to_string(truck_id)+" ;";
     db->update(ins);
   }
-}
+};
