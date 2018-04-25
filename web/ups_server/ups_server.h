@@ -15,8 +15,8 @@
 #include <unordered_map>
 #include "packedmessage.h"
 #include "db.h"
-#include "proto/ups.pb.h"
-#include "proto/au.pb.h"
+#include "ups.pb.h"
+#include "au.pb.h"
 #include "config.h"
 #define NUMTRUCKS 5
 #define RECONNECTID 10

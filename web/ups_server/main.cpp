@@ -3,8 +3,8 @@
 #include <boost/thread.hpp>
 #include <string>
 #include <cstdlib>
-#include "proto/ups.pb.h"
-#include "proto/au.pb.h"
+#include "ups.pb.h"
+#include "au.pb.h"
 #include "packedmessage.h"
 #include "ups_server.h"
 #include "config.h"
