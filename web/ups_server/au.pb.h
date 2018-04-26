@@ -1027,8 +1027,17 @@ class U2A : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::au::U2Atruckarrive >*
       mutable_ta();
 
+  // optional int64 worldid = 3;
+  inline bool has_worldid() const;
+  inline void clear_worldid();
+  static const int kWorldidFieldNumber = 3;
+  inline ::google::protobuf::int64 worldid() const;
+  inline void set_worldid(::google::protobuf::int64 value);
+
   // @@protoc_insertion_point(class_scope:au.U2A)
  private:
+  inline void set_has_worldid();
+  inline void clear_has_worldid();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -1036,6 +1045,7 @@ class U2A : public ::google::protobuf::Message {
   mutable int _cached_size_;
   ::google::protobuf::RepeatedPtrField< ::au::U2Agenpid > gp_;
   ::google::protobuf::RepeatedPtrField< ::au::U2Atruckarrive > ta_;
+  ::google::protobuf::int64 worldid_;
   friend void  protobuf_AddDesc_au_2eproto();
   friend void protobuf_AssignDesc_au_2eproto();
   friend void protobuf_ShutdownFile_au_2eproto();
@@ -1946,6 +1956,30 @@ inline ::google::protobuf::RepeatedPtrField< ::au::U2Atruckarrive >*
 U2A::mutable_ta() {
   // @@protoc_insertion_point(field_mutable_list:au.U2A.ta)
   return &ta_;
+}
+
+// optional int64 worldid = 3;
+inline bool U2A::has_worldid() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void U2A::set_has_worldid() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void U2A::clear_has_worldid() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void U2A::clear_worldid() {
+  worldid_ = GOOGLE_LONGLONG(0);
+  clear_has_worldid();
+}
+inline ::google::protobuf::int64 U2A::worldid() const {
+  // @@protoc_insertion_point(field_get:au.U2A.worldid)
+  return worldid_;
+}
+inline void U2A::set_worldid(::google::protobuf::int64 value) {
+  set_has_worldid();
+  worldid_ = value;
+  // @@protoc_insertion_point(field_set:au.U2A.worldid)
 }
 
 

@@ -57,4 +57,5 @@ message A2U{
 message U2A{
 	repeated U2Agenpid gp =1;
 	repeated U2Atruckarrive ta=2;
+	optional int64 worldid=3;
 }

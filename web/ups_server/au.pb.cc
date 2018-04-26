@@ -212,9 +212,10 @@ void protobuf_AssignDesc_au_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(A2U));
   U2A_descriptor_ = file->message_type(9);
-  static const int U2A_offsets_[2] = {
+  static const int U2A_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(U2A, gp_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(U2A, ta_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(U2A, worldid_),
   };
   U2A_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -307,8 +308,9 @@ void protobuf_AddDesc_au_2eproto() {
     " \002(\005\022\014\n\004oids\030\004 \003(\003\"\'\n\016A2Utruckdepart\022\025\n\002"
     "tr\030\001 \002(\0132\t.au.Truck\"G\n\003A2U\022 \n\002pr\030\001 \003(\0132\024"
     ".au.A2Upickuprequest\022\036\n\002td\030\002 \003(\0132\022.au.A2"
-    "Utruckdepart\"@\n\003U2A\022\031\n\002gp\030\001 \003(\0132\r.au.U2A"
-    "genpid\022\036\n\002ta\030\002 \003(\0132\022.au.U2Atruckarrive", 638);
+    "Utruckdepart\"Q\n\003U2A\022\031\n\002gp\030\001 \003(\0132\r.au.U2A"
+    "genpid\022\036\n\002ta\030\002 \003(\0132\022.au.U2Atruckarrive\022\017"
+    "\n\007worldid\030\003 \001(\003", 655);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "au.proto", &protobuf_RegisterTypes);
   Item::default_instance_ = new Item();
@@ -3132,6 +3134,7 @@ void A2U::Swap(A2U* other) {
 #ifndef _MSC_VER
 const int U2A::kGpFieldNumber;
 const int U2A::kTaFieldNumber;
+const int U2A::kWorldidFieldNumber;
 #endif  // !_MSC_VER
 
 U2A::U2A()
@@ -3152,6 +3155,7 @@ U2A::U2A(const U2A& from)
 
 void U2A::SharedCtor() {
   _cached_size_ = 0;
+  worldid_ = GOOGLE_LONGLONG(0);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -3187,6 +3191,7 @@ U2A* U2A::New() const {
 }
 
 void U2A::Clear() {
+  worldid_ = GOOGLE_LONGLONG(0);
   gp_.Clear();
   ta_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -3227,6 +3232,21 @@ bool U2A::MergePartialFromCodedStream(
           goto handle_unusual;
         }
         if (input->ExpectTag(18)) goto parse_ta;
+        if (input->ExpectTag(24)) goto parse_worldid;
+        break;
+      }
+
+      // optional int64 worldid = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_worldid:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
+                 input, &worldid_)));
+          set_has_worldid();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -3268,6 +3288,11 @@ void U2A::SerializeWithCachedSizes(
       2, this->ta(i), output);
   }
 
+  // optional int64 worldid = 3;
+  if (has_worldid()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(3, this->worldid(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -3292,6 +3317,11 @@ void U2A::SerializeWithCachedSizes(
         2, this->ta(i), target);
   }
 
+  // optional int64 worldid = 3;
+  if (has_worldid()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(3, this->worldid(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -3303,6 +3333,15 @@ void U2A::SerializeWithCachedSizes(
 int U2A::ByteSize() const {
   int total_size = 0;
 
+  if (_has_bits_[2 / 32] & (0xffu << (2 % 32))) {
+    // optional int64 worldid = 3;
+    if (has_worldid()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int64Size(
+          this->worldid());
+    }
+
+  }
   // repeated .au.U2Agenpid gp = 1;
   total_size += 1 * this->gp_size();
   for (int i = 0; i < this->gp_size(); i++) {
@@ -3346,6 +3385,11 @@ void U2A::MergeFrom(const U2A& from) {
   GOOGLE_CHECK_NE(&from, this);
   gp_.MergeFrom(from.gp_);
   ta_.MergeFrom(from.ta_);
+  if (from._has_bits_[2 / 32] & (0xffu << (2 % 32))) {
+    if (from.has_worldid()) {
+      set_worldid(from.worldid());
+    }
+  }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
@@ -3372,6 +3416,7 @@ void U2A::Swap(U2A* other) {
   if (other != this) {
     gp_.Swap(&other->gp_);
     ta_.Swap(&other->ta_);
+    std::swap(worldid_, other->worldid_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
