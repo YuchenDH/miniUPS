@@ -22,7 +22,7 @@ class orders(models.Model):
 
 class items(models.Model):
 	name = models.CharField(max_length=50)
-	count = models.IntegerField()
+	count = models.IntegerField(default=0)
 	order = models.ForeignKey(orders,on_delete=models.CASCADE)
 
 class warehouses(models.Model):

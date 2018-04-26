@@ -28,8 +28,8 @@ class db : public boost::enable_shared_from_this<db> {
     temp+=dbname;
     temp+=" user=";
     temp+=user;
-    temp+=" password=";
-    temp+=password;
+    //temp+=" password=";
+    // temp+=password;
     return temp;
   }
   std::string get_timestamp(){
@@ -42,12 +42,12 @@ class db : public boost::enable_shared_from_this<db> {
     return res;
   }
 	
- db(std::string Dbname, std::string User, std::string Password) : dbname(Dbname), user(User), password(Password){}
+ db(std::string Dbname, std::string User) : dbname(Dbname), user(User){}
 	
  public:
   typedef boost::shared_ptr<db> dbPointer;
-  static dbPointer create(std::string Dbname, std::string User, std::string Password) {
-    return dbPointer(new db(Dbname, User, Password));
+  static dbPointer create(std::string Dbname, std::string User) {
+    return dbPointer(new db(Dbname, User));
   }
   
   ~db(){

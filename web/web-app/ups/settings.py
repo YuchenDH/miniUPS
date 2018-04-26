@@ -82,9 +82,9 @@ WSGI_APPLICATION = 'ups.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'upsweb',#diff in localhost and docker //postgres
+        'NAME': 'postgres',#diff in localhost and docker //postgres
         'USER': 'postgres',#
-        'HOST': 'localhost',#diff in localhost and docker //db
+        'HOST': 'db',#diff in localhost and docker //db
         'PORT': '5432',
     }
 }
