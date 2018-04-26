@@ -83,12 +83,17 @@ public:
     // decode the header and return the message length. Return 0 in case of 
     // an error.
     //
-    unsigned decode_header(const data_buffer& buf) const
+    unsigned int get_message_size(){
+      
+    }
+    unsigned decode_header(const data_buffer& buf,int& headersize) const
     {
         if (buf.size() < HEADER_SIZE)
             return 0;
         unsigned msg_size = 0;
-        for (unsigned i = 0; i < HEADER_SIZE; ++i)
+        for (unsigned i = 0; i < HEADER_SIZE; ++i){
+	  if()
+	}
             msg_size = msg_size * 256 + (static_cast<unsigned>(buf[i]) & 0xFF);
         return msg_size;
     }
