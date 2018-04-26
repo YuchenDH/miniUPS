@@ -24,6 +24,8 @@
 #define RECONNECTID 10
 #define AMZ_ADDRESS "vcm-3799.vm.duke.edu"//need modify
 #define AMZ_PORT 23457
+#define WORLD_ADDRESS "locolhost"
+#define WORLD_PORT 12345
 
 using namespace std;
 namespace asio = boost::asio;
@@ -85,8 +87,16 @@ private:
   }
   void connect_world(){
     //handle connection to world with world_sock;
-    tcp::endpoint world_ep(asio::ip::address::from_string("localhost"), 12345);//
-    world_sock.connect(world_ep);
+    tcp::endpoint world_ep(asio::ip::address::from_string(WORLD_ADDRESS), WORLD_PORT);//
+    do{
+      try{
+	world_sock.connect(world_ep);
+	break;
+      }catch(std::exception &e) {
+	cerr << e.what();
+	usleep(10000);
+      }
+    } while (true);
     //send UConnect
     boost::shared_ptr<ups::UConnect> ucon(new ups::UConnect);
     ucon->set_reconnectid(RECONNECTID);
