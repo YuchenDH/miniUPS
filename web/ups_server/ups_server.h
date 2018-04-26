@@ -14,6 +14,7 @@
 #include <ctime>
 #include <mutex>
 #include <unordered_map>
+#include <exception>
 #include "packedmessage.h"
 #include "db.h"
 #include "ups.pb.h"
@@ -72,7 +73,6 @@ private:
     packed_ur(boost::shared_ptr<ups::UResponses>(new ups::UResponses())),
     packed_a2u(boost::shared_ptr<au::A2U>(new au::A2U())),
     packed_u2a(boost::shared_ptr<au::U2A>(new au::U2A())) {
-
   }
   long gen_package_id(long oreder_id){
     time_t nowtime;  
@@ -130,7 +130,12 @@ private:
     tcp::endpoint amz_ep(asio::ip::address::from_string(AMZ_ADDRESS), AMZ_PORT);
     boost::system::error_code ec;
     do {
+      try{
       amz_sock.connect(amz_ep, ec);
+      } catch (std::exception &e) {
+	cerr << e.what() << endl;
+	usleep(10000);
+      }
       if (ec) {
 	cerr << "Error when connecting to amz server at " << AMZ_ADDRESS << ":" << AMZ_PORT << endl;
       }
