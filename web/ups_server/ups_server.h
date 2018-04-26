@@ -21,7 +21,7 @@
 #include "config.h"
 #define NUMTRUCKS 5
 #define RECONNECTID 10
-#define AMZ_ADDRESS "127.0.0.1"
+#define AMZ_ADDRESS "vcm-3799.vm.duke.edu"//need modify
 #define AMZ_PORT 23457
 
 using namespace std;
@@ -85,7 +85,7 @@ private:
   }
   void connect_world(){
     //handle connection to world with world_sock;
-    tcp::endpoint world_ep(asio::ip::address::from_string("127.0.0.1"), 12345);
+    tcp::endpoint world_ep(asio::ip::address::from_string("localhost"), 12345);//
     world_sock.connect(world_ep);
     //send UConnect
     boost::shared_ptr<ups::UConnect> ucon(new ups::UConnect);
