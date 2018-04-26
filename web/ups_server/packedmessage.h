@@ -83,27 +83,41 @@ public:
     // decode the header and return the message length. Return 0 in case of 
     // an error.
     //
-    unsigned int get_message_size(){
-      
+    unsigned int get_message_size(const data_buffer& buf){
+      size_t s =0;
+      int res=0;
+      for(size_t i=0;i<HEADER_SIZE;++i){
+	if(buf.at(i)<0x80){
+	  return res | int(buf.at(i))<<s;
+	}
+	res |= int(buf.at(i)&0x7f) << s;
+	s+=7;
+      }
+      return 
+    }
+    int get_header_size(const data_buffer& buf){
+      for(size_t i=0;i<HEADER_SIZE;++i){
+	if(buf.at(i)<0x80){
+	  return i+1;
+	}
+      }
+      return -1;
     }
     unsigned decode_header(const data_buffer& buf,int& headersize) const
     {
         if (buf.size() < HEADER_SIZE)
             return 0;
-        unsigned msg_size = 0;
-        for (unsigned i = 0; i < HEADER_SIZE; ++i){
-	  if()
-	}
-            msg_size = msg_size * 256 + (static_cast<unsigned>(buf[i]) & 0xFF);
+        unsigned msg_size = get_message_size(buf);
+	headersize = get_header_size(buf);
         return msg_size;
     }
 
     // Unpack and store a message from the given packed buffer.
     // Return true if unpacking successful, false otherwise.
     //
-    bool unpack(const data_buffer& buf)
+    bool unpack(const data_buffer& buf,int headersize)
     {
-        return m_msg->ParseFromArray(&buf[HEADER_SIZE], buf.size() - HEADER_SIZE);
+        return m_msg->ParseFromArray(&buf[headersize], buf.size() - headersize);
     }
 private:
     // Encodes the side into a header at the beginning of buf
