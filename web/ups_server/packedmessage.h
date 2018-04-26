@@ -1,8 +1,4 @@
-// packedmessage.h: packaging of messages into length-prepended buffers
-// ready for transmission.
-//
-// This code is in the public domain
-//
+
 #ifndef PACKEDMESSAGE_H
 #define PACKEDMESSAGE_H
 
@@ -82,7 +78,7 @@ public:
     // decode the header and return the message length. Return 0 in case of 
     // an error.
     //
-    unsigned int get_message_size(const data_buffer& buf){
+    unsigned int get_message_size(const data_buffer& buf) const{
       size_t s =0;
       int res=0;
       for(size_t i=0;i<HEADER_SIZE;++i){
@@ -92,9 +88,9 @@ public:
 	res |= int(buf.at(i)&0x7f) << s;
 	s+=7;
       }
-      return 
+      return 0;
     }
-    int get_header_size(const data_buffer& buf){
+    int get_header_size(const data_buffer& buf) const{
       for(size_t i=0;i<HEADER_SIZE;++i){
 	if(buf.at(i)<0x80){
 	  return i+1;
@@ -114,8 +110,9 @@ public:
     // Unpack and store a message from the given packed buffer.
     // Return true if unpacking successful, false otherwise.
     //
-    bool unpack(const data_buffer& buf,int headersize)
+    bool unpack(const data_buffer& buf)
     {
+      int headersize = get_header_size(buf);
         return m_msg->ParseFromArray(&buf[headersize], buf.size() - headersize);
     }
 private:
@@ -124,14 +121,15 @@ private:
     void encode_header(data_buffer& buf, unsigned size, unsigned& header_size) const
     {
       header_size = 0;
+      int temp =0;
       while(size > 0x01111111) {
 	header_size++;
-	int temp = size % 7 + 0x10000000;
+	temp = size % 7 + 0x10000000;
 	buf.insert(buf.begin(), temp);
-	size >> 7;
+	size  = size >> 7;
       }
       header_size++;
-      buf.insert(buf.begin(), temp);
+      buf.insert(buf.begin(), size);
     }
 
     MessagePointer m_msg;

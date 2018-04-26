@@ -120,10 +120,11 @@ private:
     DEBUG && (cerr << "Got header\n");
     DEBUG && (cerr << show_hex(readbuf) << endl);
     PackedMessage<ups::UConnected> ucond;
-    unsigned msg_len = ucond.decode_header(readbuf);
-    DEBUG && (cerr << msg_len << " bytes\n");
+    int headersize=0;
+    unsigned msg_len = ucond.decode_header(readbuf,headersize);
+    DEBUG && (cerr << msg_len << " bytes\n"<< headersize<<" bytes\n");
 
-    readbuf.resize(HEADER_SIZE + msg_len);
+    readbuf.resize(headersize + msg_len);
     asio::mutable_buffers_1 buf = asio::buffer(&readbuf[HEADER_SIZE], msg_len);
     asio::read(world_sock, buf);
     DEBUG && (cerr << "Got UConnected\n");
@@ -172,9 +173,10 @@ private:
     if (!error) {
       DEBUG && (cerr << "Got header from world \n" << endl);
       DEBUG && (cerr << show_hex(world_readbuf) << endl);
-      unsigned msg_len = packed_ur.decode_header(world_readbuf);
+      int headersize=0;
+      unsigned msg_len = packed_ur.decode_header(world_readbuf,headersize);
       DEBUG && (cerr << msg_len << " bytes\n");
-      world_start_read_body(msg_len);
+      world_start_read_body(msg_len,headersize);
     }
   }
 
@@ -198,8 +200,8 @@ private:
 				 asio::placeholders::error));
   }
 
-  void world_start_read_body(unsigned msg_len) {
-    world_readbuf.resize(HEADER_SIZE + msg_len);
+  void world_start_read_body(unsigned msg_len,int headersize) {
+    world_readbuf.resize(headersize + msg_len);
     asio::mutable_buffers_1 buf = asio::buffer(&world_readbuf[HEADER_SIZE], msg_len);
     asio::async_read(world_sock, buf, 
 		     boost::bind(&UpsServer::world_handle_read_body,
@@ -340,9 +342,10 @@ private:
     if (!error) {
       DEBUG && (cerr << "Got header from amz\n" << endl);
       DEBUG && (cerr << show_hex(amz_readbuf) << endl);
-      unsigned msg_len = packed_a2u.decode_header(amz_readbuf);
+      int headersize=0;
+      unsigned msg_len = packed_a2u.decode_header(amz_readbuf,headersize);
       DEBUG && (cerr << msg_len << " bytes\n");
-      amz_start_read_body(msg_len);
+      amz_start_read_body(msg_len,headersize);
     }
   }
 
@@ -367,8 +370,8 @@ private:
 				 asio::placeholders::error));
   }
 
-  void amz_start_read_body(unsigned msg_len) {
-    amz_readbuf.resize(HEADER_SIZE + msg_len);
+  void amz_start_read_body(unsigned msg_len,int headersize) {
+    amz_readbuf.resize(headersize + msg_len);
     asio::mutable_buffers_1 buf = asio::buffer(&amz_readbuf[HEADER_SIZE], msg_len);
     asio::async_read(amz_sock, buf, 
 		     boost::bind(&UpsServer::amz_handle_read_body,
