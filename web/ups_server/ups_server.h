@@ -23,7 +23,7 @@
 
 #define NUMTRUCKS 5
 #define RECONNECTID 10
-#define AMZ_ADDRESS "vcm-3799.vm.duke.edu"//need modify
+#define AMZ_ADDRESS "152.3.64.74"//need modify
 #define AMZ_PORT 23457
 #define WORLD_ADDRESS "67.159.89.119"
 #define WORLD_PORT 12345
@@ -103,8 +103,8 @@ private:
       }
     } while (true);
     //send UConnect
-    boost::shared_ptr<ups::UConnect> ucon(new ups::UConnect);
-    ucon->set_reconnectid(RECONNECTID);
+    boost::shared_ptr<ups::UConnect> ucon(new ups::UConnect());
+    // ucon->set_reconnectid(RECONNECTID);
     ucon->set_numtrucksinit(NUMTRUCKS);
     //send();
     std::cout<<"before send";
@@ -119,13 +119,14 @@ private:
     asio::read(world_sock, asio::buffer(readbuf));
     DEBUG && (cerr << "Got header\n");
     DEBUG && (cerr << show_hex(readbuf) << endl);
-    PackedMessage<ups::UConnected> ucond;
+    boost::shared_ptr<ups::UConnected> ucondp(new ups::UConnected());
+    PackedMessage<ups::UConnected> ucond(ucondp);
     int headersize=0;
     unsigned msg_len = ucond.decode_header(readbuf,headersize);
     DEBUG && (cerr << msg_len << " bytes\n"<< headersize<<" bytes\n");
 
     readbuf.resize(headersize + msg_len);
-    asio::mutable_buffers_1 buf = asio::buffer(&readbuf[HEADER_SIZE], msg_len);
+    asio::mutable_buffers_1 buf = asio::buffer(&readbuf[HEADER_SIZE], msg_len-HEADER_SIZE+headersize);
     asio::read(world_sock, buf);
     DEBUG && (cerr << "Got UConnected\n");
     DEBUG && (cerr << show_hex(readbuf) << endl);
@@ -202,7 +203,7 @@ private:
 
   void world_start_read_body(unsigned msg_len,int headersize) {
     world_readbuf.resize(headersize + msg_len);
-    asio::mutable_buffers_1 buf = asio::buffer(&world_readbuf[HEADER_SIZE], msg_len);
+    asio::mutable_buffers_1 buf = asio::buffer(&world_readbuf[HEADER_SIZE], msg_len-HEADER_SIZE+headersize);
     asio::async_read(world_sock, buf, 
 		     boost::bind(&UpsServer::world_handle_read_body,
 				 shared_from_this(),
@@ -372,7 +373,7 @@ private:
 
   void amz_start_read_body(unsigned msg_len,int headersize) {
     amz_readbuf.resize(headersize + msg_len);
-    asio::mutable_buffers_1 buf = asio::buffer(&amz_readbuf[HEADER_SIZE], msg_len);
+    asio::mutable_buffers_1 buf = asio::buffer(&amz_readbuf[HEADER_SIZE], msg_len-HEADER_SIZE+headersize);
     asio::async_read(amz_sock, buf, 
 		     boost::bind(&UpsServer::amz_handle_read_body,
 				 shared_from_this(),
