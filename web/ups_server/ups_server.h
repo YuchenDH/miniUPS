@@ -59,7 +59,7 @@ private:
   PackedMessage<ups::UResponses> packed_ur;
   PackedMessage<au::A2U> packed_a2u;
   PackedMessage<au::U2A> packed_u2a;
-  
+  long world_id;
   vector<uint8_t> amz_readbuf;
   data_buffer world_readbuf;
   std::mutex db_lock;
@@ -118,6 +118,8 @@ private:
 	cerr << msg->error() << endl;
 	exit(EXIT_FAILURE);
       }
+      world_id = msg->worldid();
+      cout << "Worldid: " << world_id << endl;
     } else {
       cerr << "Unable to decode UConnected message, exiting now...\n";
     }
@@ -133,8 +135,16 @@ private:
 	cerr << "Error when connecting to amz server at " << AMZ_ADDRESS << ":" << AMZ_PORT << endl;
       }
     } while(ec != 0)
-      
+    
     DEBUG && cerr << "Connected to amz\n";
+    //add a Message to tell amz world_id
+    U2APointer response(new au::U2A());
+    response->set_worldid(world_id);
+    vector<uint8_t> writebuf;
+    PackedMessage<au::U2A> ucon_msg(response);
+    ucon_msg.pack(writebuf);
+    asio::write(amz_sock, asio::buffer(writebuf));
+    DEBUG && cerr << "Sent worldid to amz\n";
   }
   
   void world_handle_read_header(const boost::system::error_code& error) {
