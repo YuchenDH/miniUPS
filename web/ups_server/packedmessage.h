@@ -1,8 +1,6 @@
-//
 // packedmessage.h: packaging of messages into length-prepended buffers
 // ready for transmission.
 //
-// Eli Bendersky (eliben@gmail.com)
 // This code is in the public domain
 //
 #ifndef PACKEDMESSAGE_H
@@ -74,9 +72,10 @@ public:
             return false;
 
         unsigned msg_size = m_msg->ByteSize();
-        buf.resize(HEADER_SIZE + msg_size);
-        encode_header(buf, msg_size);
-        return m_msg->SerializeToArray(&buf[HEADER_SIZE], msg_size);
+	unsigned header_size;
+        encode_header(buf, msg_size, header_size);
+        buf.resize(header_size + msg_size);
+        return m_msg->SerializeToArray(&buf[header_size], msg_size);
     }
 
     // Given a buffer with the first HEADER_SIZE bytes representing the header,
@@ -122,13 +121,17 @@ public:
 private:
     // Encodes the side into a header at the beginning of buf
     //
-    void encode_header(data_buffer& buf, unsigned size) const
+    void encode_header(data_buffer& buf, unsigned size, unsigned& header_size) const
     {
-        assert(buf.size() >= HEADER_SIZE);
-        buf[0] = static_cast<boost::uint8_t>((size >> 24) & 0xFF);
-        buf[1] = static_cast<boost::uint8_t>((size >> 16) & 0xFF);
-        buf[2] = static_cast<boost::uint8_t>((size >> 8) & 0xFF);
-        buf[3] = static_cast<boost::uint8_t>(size & 0xFF);
+      header_size = 0;
+      while(size > 0x01111111) {
+	header_size++;
+	int temp = size % 7 + 0x10000000;
+	buf.insert(buf.begin(), temp);
+	size >> 7;
+      }
+      header_size++;
+      buf.insert(buf.begin(), temp);
     }
 
     MessagePointer m_msg;
