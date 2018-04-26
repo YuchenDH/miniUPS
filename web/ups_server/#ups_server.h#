@@ -25,7 +25,7 @@
 #define RECONNECTID 10
 #define AMZ_ADDRESS "vcm-3799.vm.duke.edu"//need modify
 #define AMZ_PORT 23457
-#define WORLD_ADDRESS "67.159.89.119"
+#define WORLD_ADDRESS "127.0.0."
 #define WORLD_PORT 12345
 //#define DEBUG 1
 
@@ -98,7 +98,7 @@ private:
 	world_sock.connect(world_ep);
 	break;
       }catch(std::exception &e) {
-	cout << e.what();
+	cerr << e.what();
 	usleep(10000);
       }
     } while (true);

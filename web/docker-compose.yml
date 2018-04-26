@@ -39,7 +39,7 @@ services:
        - web
   ups:
      build: ./ups_server
-     command: bash -c "sleep 5 && init_world 10 10 && ./server"
+     command: bash -c "sleep 5 && ./server"
      volumes:
        - ./ups_server:/code
      depends_on:

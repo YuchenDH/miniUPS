@@ -25,8 +25,9 @@ int main(int argc, const char* argv[]) {
   std::cout<<"db connected\r\n";
   asio::io_service io[2];
   boost::shared_ptr<UpsServer> server_ptr = UpsServer::create(io[0], io[1], db_ptr);
+  std::cout<<"ups server built\n";
   server_ptr->start();
-  
+  std::cout<<"start success\n";
   boost::thread t(boost::bind(&thread, boost::ref(io[0])));
   io[1].run();
   t.join();
