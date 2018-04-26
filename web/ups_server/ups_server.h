@@ -244,7 +244,11 @@ private:
       for(int i=0 ;i<ures->completions_size();++i){
         int truck_id = ures->completions(i).truckid();
         int status = dblink->get_truck_status(truck_id);//0:free/idle 1:ready 2:pickup 3:wait for loading 4:out of delivery
-        int x = ures->completions(i).x();
+	if(status<0){
+	  dblink->add_truck(0,ures->comletions(i).x(),ures->completions.y(),truck_id);
+	  continue ; 
+	}
+	int x = ures->completions(i).x();
         int y = ures->completions(i).y();
         if(status == 2){//2:pick up
           //arrive at warehouse, need to load
