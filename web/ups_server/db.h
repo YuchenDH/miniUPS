@@ -30,6 +30,7 @@ class db : public boost::enable_shared_from_this<db> {
     temp+=user;
     //temp+=" password=";
     // temp+=password;
+    temp+=" host=db port=5432";
     return temp;
   }
   std::string get_timestamp(){

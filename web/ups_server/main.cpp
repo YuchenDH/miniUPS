@@ -17,7 +17,7 @@ void thread(asio::io_service & s) {
 }
 
 int main(int argc, const char* argv[]) {
-  db::dbPointer db_ptr = db::create("upsweb", "postgres");
+  db::dbPointer db_ptr = db::create("postgres", "postgres");
   if (db_ptr->connect_db()) {
     cerr << "Error when connecting to db\n";
     return 1;
