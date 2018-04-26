@@ -10,6 +10,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <pqxx/pqxx>
+#include <sys/wait.h>
 #include <ctime>
 #include <mutex>
 #include <unordered_map>
@@ -126,10 +127,13 @@ private:
     //connect to amazon server
     tcp::endpoint amz_ep(asio::ip::address::from_string(AMZ_ADDRESS), AMZ_PORT);
     boost::system::error_code ec;
-    amz_sock.connect(amz_ep, ec);
-    if (ec) {
-      cerr << "Error when connecting to amz server at " << AMZ_ADDRESS << ":" << AMZ_PORT << endl;
-    }
+    do {
+      amz_sock.connect(amz_ep, ec);
+      if (ec) {
+	cerr << "Error when connecting to amz server at " << AMZ_ADDRESS << ":" << AMZ_PORT << endl;
+      }
+    } while(ec != 0)
+      
     DEBUG && cerr << "Connected to amz\n";
   }
   
