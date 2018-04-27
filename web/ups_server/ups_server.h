@@ -394,11 +394,12 @@ private:
       PackedMessage<ups::UCommands> resp_msg(resp);
       resp_msg.pack(writebuf);
       send_msg(world_sock, writebuf);
+      std::cout<<"send UCommand to world(pr & td)\n";
     }
   }
   
   void assign_truck(UCpointer response){
-    int truck_id = -1;
+    int truck_id = -2;
     while(dblink->has_unprocessed_order() && (truck_id = dblink->get_free_truck())>0){
       int whid = bind_order_with_truck(truck_id);
       ups::UGoPickup * temp = response->add_pickups();
