@@ -441,7 +441,10 @@ private:
     for(int i=0;i<a2u->pr_size();++i){
       insert_order_to_dblink(a2u->mutable_pr(i));
     }
-    assign_truck(response);
+    if(a2u->pr_size()>0){
+      assign_truck(response);
+    }
+    
 
     //process A2Utruckdepart
     for(int i=0;i<a2u->td_size();++i){

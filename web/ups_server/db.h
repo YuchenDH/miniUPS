@@ -504,11 +504,11 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
-      package temp;
-      temp.package_id=c[0].as<long>();
-      temp.x=c[1].as<int>();
-      temp.y=c[2].as<int>();
-      res->push_back(&temp);
+      package * temp = new package();
+      temp->package_id=c[0].as<long>();
+      temp->x=c[1].as<int>();
+      temp->y=c[2].as<int>();
+      res->push_back(temp);
     } 
     std::cout<<ins<<" success\r\n";    
     return res;
