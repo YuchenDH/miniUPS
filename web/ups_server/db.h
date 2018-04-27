@@ -364,7 +364,7 @@ class db : public boost::enable_shared_from_this<db> {
   }  
   std::vector<long> * get_oid_by_truckid(int truck_id){
     std::vector<long> * res = new std::vector<long>();
-    std::string ins("SELECT order_id FROM search_orders WHERE status = 1 and truck_id = ");
+    std::string ins("SELECT order_id FROM search_orders WHERE status = 2 and truck_id = ");
     ins+=std::to_string(truck_id);ins+=";";
     work W(*C);
     result R( W.exec( ins ));W.commit();
