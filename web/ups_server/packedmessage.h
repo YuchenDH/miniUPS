@@ -31,7 +31,7 @@ std::string show_hex(const CharContainer& c)
 
 // The header size for packed messages
 //
-const unsigned HEADER_SIZE = 4;
+const unsigned HEADER_SIZE = 1;//original is 4
 
 
 // PackedMessage implements simple "packing" of protocol buffers Messages into
@@ -81,20 +81,32 @@ public:
     unsigned int get_message_size(const data_buffer& buf) const{
       size_t s =0;
       int res=0;
+      //size_t start = get_00_num(buf);
       for(size_t i=0;i<HEADER_SIZE;++i){
-	if(buf.at(i)<0x80){
-	  return res | int(buf.at(i))<<s
-	}
-	res |= int(buf.at(i)&0x7f) << s;
-	s+=7;
+         if(buf.at(i)==0){
+             continue ; 
+         }
+	    if(buf.at(i)<0x80){
+	       return res | int(buf.at(i))<<s
+	    }
+	    res |= int(buf.at(i)&0x7f) << s;
+	    s+=7;
+      }
+      return 0;
+    }
+    unsigned int get_00_num(const data_buffer& buf) const{
+      for(size_t i=0;i<HEADER_SIZE;++i){
+        if(buf.at(i)!=0){
+            return i; 
+        }
       }
       return 0;
     }
     int get_header_size(const data_buffer& buf) const{
       for(size_t i=0;i<HEADER_SIZE;++i){
-	if(buf.at(i)<0x80){
-	  return i+1;
-	}
+	    if(buf.at(i)<0x80){
+	       return i+1;
+	    }
       }
       return -1;
     }
@@ -102,8 +114,9 @@ public:
     {
         if (buf.size() < HEADER_SIZE)
             return 0;
-        unsigned msg_size = get_message_size(buf);
-	headersize = get_header_size(buf);
+        size_t null = get_00_num(buf);
+        unsigned msg_size = get_message_size(buf)+null;
+	    headersize = get_header_size(buf);
         return msg_size;
     }
 

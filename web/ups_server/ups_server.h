@@ -530,7 +530,6 @@ private:
     ins2=ins2+std::to_string(truck_id)+" ;";
     dblink->update(ins2);
   }
-
  public:
   void start() {
     connect_world();
