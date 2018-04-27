@@ -31,7 +31,7 @@ std::string show_hex(const CharContainer& c)
 
 // The header size for packed messages
 //
-const unsigned HEADER_SIZE = 1;//original is 4
+const unsigned HEADER_SIZE = 4;//original is 4
 
 
 // PackedMessage implements simple "packing" of protocol buffers Messages into
