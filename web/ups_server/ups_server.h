@@ -23,7 +23,7 @@
 
 #define NUMTRUCKS 5
 #define RECONNECTID 10
-#define AMZ_ADDRESS "152.3.77.224"//need modify, 152.3.64.74
+#define AMZ_ADDRESS "152.3.64.74"//need modify, 152.3.64.74
 #define AMZ_PORT 23457
 #define WORLD_ADDRESS "67.159.89.119"
 #define WORLD_PORT 12345
@@ -37,6 +37,7 @@ using asio::ip::tcp;
 using boost::uint8_t;
 
 typedef std::vector<boost::uint8_t> data_buffer;
+std::mutex mtx;
 
 class UpsServer : public boost::enable_shared_from_this<UpsServer> {
  public:
@@ -220,6 +221,7 @@ private:
   
   void world_handle_request() {
     //unpack world_readbuf
+    std::lock_guard<std::mutex> lck(mtx);
     if (packed_ur.unpack(world_readbuf)) {
       URpointer ures = packed_ur.get_msg();
       // ups::UCommands * temp = NULL;
@@ -326,9 +328,9 @@ private:
         else if(status == 4){//4:delivered
           //finished delivery, truck is free now
           //update truck status and location
-          std::string ins("update search_trucks set status = 0,xlocation=");
+          std::string ins("update search_trucks set status = 0,xloction=");
           ins+=std::to_string(x);
-          ins+=",ylocation=";
+          ins+=",yloction=";
           ins+=std::to_string(y);
           ins+=" where truck_id = ";
           ins+=std::to_string(truck_id);
@@ -402,6 +404,7 @@ private:
   }
   
   void amz_handle_request() {
+  std::lock_guard<std::mutex> lck(mtx);
     DEBUG && (cerr<<"begin handle amz request\n");
     if (packed_a2u.unpack(amz_readbuf)) {
       A2Upointer ares = packed_a2u.get_msg();
