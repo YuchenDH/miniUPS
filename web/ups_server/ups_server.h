@@ -527,8 +527,8 @@ private:
     dblink->update(ins);
 
     std::string ins2("update search_orders set status = 4 where status = 3 and truck_id =");
-    ins=ins+std::to_string(truck_id)+" ;";
-    dblink->update(ins);
+    ins2=ins2+std::to_string(truck_id)+" ;";
+    dblink->update(ins2);
   }
 
  public:
