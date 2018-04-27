@@ -300,7 +300,8 @@ private:
           std::cout<<"set order info\r\n";
           std::vector<long> * res = dblink->get_oid_by_truckid(truck_id);//res need delete 
           for(size_t i=0;i<res->size();++i){
-            temp->set_oids(i,res->at(i));
+            temp->add_oids(res->at(i));
+            //temp->set_oids(i,res->at(i));
           }
 
           //set U2Agenpid
