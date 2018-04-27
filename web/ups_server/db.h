@@ -468,7 +468,7 @@ class db : public boost::enable_shared_from_this<db> {
       return true;
     }
     else{
-      std::cout<<ins<<" success; get true\r\n";
+      std::cout<<ins<<" success; get false\r\n";
       return false;
     }
   }
