@@ -361,7 +361,21 @@ class db : public boost::enable_shared_from_this<db> {
     }
     std::cout<<")\r\n";
     return res;
-  }  
+  } 
+  int get_whid_by_oid(long oid){
+    std::string ins("select wh_id from search_orders where order_id = ");
+    ins+=std::to_string(oid);ins+=";";
+    work W(*C);
+    result R( W.exec( ins ));W.commit();
+    result::const_iterator c = R.begin();
+    if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
+      return c[0].as<int>();
+    }
+    else{
+      return -1;
+    }     
+  } 
   std::vector<long> * get_oid_by_truckid(int truck_id){
     std::vector<long> * res = new std::vector<long>();
     std::string ins("SELECT order_id FROM search_orders WHERE status = 2 and truck_id = ");

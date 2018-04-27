@@ -292,9 +292,9 @@ private:
           tr->set_id(truck_id);
           tr->set_x(x);tr->set_y(y);
 
-          //set wh info
-          int whid = dblink->get_warehouse_id(x,y);
-          temp->set_whid(whid);
+          // 
+          // int whid = dblink->get_warehouse_id(x,y);
+          // temp->set_whid(whid);
 
           //set order info
           std::cout<<"set order info\r\n";
@@ -304,6 +304,10 @@ private:
             //temp->set_oids(i,res->at(i));
           }
 
+          if(res->size()>0){
+          //set wh info
+            temp->set_whid(dblink->get_whid_by_oid(res->at(0)));
+          }
           //set U2Agenpid
           std::cout<<"set U2Agenpid \r\n";
           for(size_t i=0;i<res->size();++i){
