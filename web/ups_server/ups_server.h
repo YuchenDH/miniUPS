@@ -291,7 +291,6 @@ private:
           au::Truck * tr = temp->mutable_tr();//need delete
           tr->set_id(truck_id);
           tr->set_x(x);tr->set_y(y);
-          temp->set_allocated_tr(tr);
 
           //set wh info
           int whid = dblink->get_warehouse_id(x,y);
