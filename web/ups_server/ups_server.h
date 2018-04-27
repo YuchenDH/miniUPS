@@ -286,11 +286,12 @@ private:
           //arrive at warehouse, need to load
           
           //set truck info
-          au::Truck * tr = new au::Truck();//need delete
-          tr->set_id(truck_id);
+          //au::Truck * tr = new au::Truck();//need delete
+          //tr->set_id(truck_id);
           //tr->set_X(x);tr->set_Y(y);
-          au::U2Atruckarrive * temp = response->add_ta(); 
-          temp->set_allocated_tr(tr);
+          au::U2Atruckarrive * temp = response->add_ta();
+          temp->tr().set_id(truck_id); 
+          //temp->set_allocated_tr(tr);
 
           //set wh info
           int whid = dblink->get_warehouse_id(x,y);
