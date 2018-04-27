@@ -436,12 +436,16 @@ private:
   int bind_order_with_truck(int truck_id){
     int whid = dblink->get_oldest_order_whid();
     std::vector<long> * temp = dblink->get_oid_by_whid(whid);//need delete
+    std::string updatetruck("update search_trucks set status = 2 where truck_id =");
+    updatetruck+=std::to_string(truck_id);updatetruck+=";";
+    dblink->update(updatetruck);
     for(size_t i=0;i<temp->size();++i){
       std::string ins("update search_orders set truck_id = ");
       ins+=std::to_string(truck_id);
       ins+=" where order_id = ";
       ins+=std::to_string(temp->at(i));
       ins+=";";
+      dblink->update(ins);
     }
     std::cout<<"bind order with truck end (truck id, whid) is "<<truck_id<<","<<whid<<"\r\n";
     return whid;

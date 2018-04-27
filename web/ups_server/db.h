@@ -319,6 +319,7 @@ class db : public boost::enable_shared_from_this<db> {
     return 0;    
   }
   int update(std::string instruction){
+    std::cout<<"update begin\r\n";
     try{
       work W(*C);
       W.exec(instruction);
@@ -354,7 +355,11 @@ class db : public boost::enable_shared_from_this<db> {
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
       res->push_back(c[0].as<long>());
     }
-    std::cout<<ins<<" success\r\n"; 
+    std::cout<<ins<<" success\r\n(";
+    for(size_t i=0;i<res->size();++i){
+      std::cout<<res->at(i)<<", ";
+    }
+    std::cout<<")\r\n";
     return res;
   }  
   std::vector<long> * get_oid_by_truckid(int truck_id){
@@ -366,7 +371,11 @@ class db : public boost::enable_shared_from_this<db> {
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
       res->push_back(c[0].as<long>());
     } 
-    std::cout<<ins<<" success\r\n";
+    std::cout<<ins<<" success\r\n(";
+    for(size_t i=0;i<res->size();++i){
+      std::cout<<res->at(i)<<", ";
+    }
+    std::cout<<")\r\n";
     return res;
   }
   int get_free_truck(){
