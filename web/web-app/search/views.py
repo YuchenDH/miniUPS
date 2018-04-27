@@ -20,7 +20,7 @@ def search(request):
 def detail(request):
 	oid = request.GET.get('oi')
 	order = orders.objects.get(order_id = oid)
-	if order.user_id != request.user.id:
+	if (order.user_id != 0) and  bool(order.user_id) and (order.user_id != request.user.id):
 		return render(request,'index.html')
 	its = items.objects.filter(order_id = oid).all()
 	status=['created','truck on the way','waiting for warehouse load','out of delivery','delivered']

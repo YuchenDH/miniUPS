@@ -83,6 +83,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',#diff in localhost and docker //postgres
+        #'PASSWORD': '950703',#delete in docker
         'USER': 'postgres',#
         'HOST': 'db',#diff in localhost and docker //db
         'PORT': '5432',
