@@ -83,7 +83,7 @@ public:
       int res=0;
       for(size_t i=0;i<HEADER_SIZE;++i){
 	if(buf.at(i)<0x80){
-	  return res | int(buf.at(i))<<s
+	  return res | int(buf.at(i))<<s;
 	}
 	res |= int(buf.at(i)&0x7f) << s;
 	s+=7;
