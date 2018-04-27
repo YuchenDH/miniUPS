@@ -290,7 +290,7 @@ private:
           au::U2Atruckarrive * temp = response->add_ta();
           au::Truck * tr = temp->mutable_tr();//need delete
           tr->set_id(truck_id);
-          tr->set_X(x);tr->set_Y(y);
+          tr->set_x(x);tr->set_y(y);
           temp->set_allocated_tr(tr);
 
           //set wh info
