@@ -248,13 +248,17 @@ private:
     }
   }
   U2Apointer prepare_U2A(URpointer ures, UCpointer ucom){
+    std::cout<<"begin prepare U2A\r\n";
     if(ures->has_error()){
       //has error, handle it
       cerr << "Error msg in world response: " << ures->error() << endl;
       return NULL;
     }
     else{
+      std::cout<<"(delivered,completions) size is (";
+      std::cout<<ures->delivered_size()<<", "<<ures->completions_size()<<"))\r\n";
       //process UDelivaryMade
+      
       for(int i=0 ;i<ures->delivered_size();++i){
 	// int truck_id = ures->delivered(i).truckid();
         long package_id = ures->delivered(i).packageid();
@@ -293,12 +297,14 @@ private:
           temp->set_whid(whid);
 
           //set order info
+          std::cout<<"set order info\r\n";
           std::vector<long> * res = dblink->get_oid_by_truckid(truck_id);//res need delete 
           for(size_t i=0;i<res->size();++i){
             temp->set_oids(i,res->at(i));
           }
 
           //set U2Agenpid
+          std::cout<<"set U2Agenpid \r\n";
           for(size_t i=0;i<res->size();++i){
             au::U2Agenpid * gp = response->add_gp();
             gp->set_oid(res->at(i));
@@ -307,7 +313,10 @@ private:
           delete res;
           std::string ins("update search_trucks set status = 3 where truck_id =");
           ins=ins + std::to_string(truck_id)+";";
-          dblink->update(ins);                     
+          dblink->update(ins);
+          std::string inst("update search_orders set status = 3 where status = 2 and truck_id = ");                     
+          inst=inst + std::to_string(truck_id)+";";
+          dblink->update(inst);
         }
         else if(status == 4){//4:delivered
           //finished delivery, truck is free now
@@ -320,6 +329,9 @@ private:
           ins+=std::to_string(truck_id);
           ins+=";";
           dblink->update(ins);
+          std::string inst("update search_orders set status = 5 where status = 4 and truck_id = ");                     
+          inst=inst + std::to_string(truck_id)+";";
+          dblink->update(inst);
           if(truckshortage){
             assign_truck(ucom);
           }
@@ -471,16 +483,16 @@ private:
       int uid = dblink->get_uid_by_username(pr->upsaccount());
       if(uid<0){
         //not a valid user
-        if(dblink->add_order(package_id,order_id,whid,des_x,des_y,1,-1,first_item,count)<0){
+        if(dblink->add_order(package_id,order_id,whid,des_x,des_y,2,-1,first_item,count)<0){
           std::cout<<"add order failed\r\n";
         }
       }
-      if(dblink->add_order(package_id,order_id,whid,des_x,des_y,1,-1,uid,first_item,count)<0){
+      if(dblink->add_order(package_id,order_id,whid,des_x,des_y,2,-1,uid,first_item,count)<0){
         std::cout<<"add order failed\r\n";
       }    
     }
     else{
-      if(dblink->add_order(package_id,order_id,whid,des_x,des_y,1,-1,first_item,count)<0){
+      if(dblink->add_order(package_id,order_id,whid,des_x,des_y,2,-1,first_item,count)<0){
         std::cout<<"add order failed\r\n";
       }    
     }
@@ -506,7 +518,7 @@ private:
     ins=ins+std::to_string(truck_id)+" ;";
     dblink->update(ins);
 
-    std::string ins2("update search_orders set status = 4 where status=3 and truck_id =");
+    std::string ins2("update search_orders set status = 4 where status = 3 and truck_id =");
     ins=ins+std::to_string(truck_id)+" ;";
     dblink->update(ins);
   }
