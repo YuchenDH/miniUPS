@@ -90,6 +90,7 @@ private:
   }
   void connect_world(){
     //handle connection to world with world_sock;
+    dblink->add_truck(-1,0,0,-2);//
     std::cout<<"into connect world function\n";
     boost::asio::ip::tcp::endpoint world_ep(asio::ip::address::from_string(WORLD_ADDRESS), WORLD_PORT);//
     std::cout<<"world_ep success\n";
