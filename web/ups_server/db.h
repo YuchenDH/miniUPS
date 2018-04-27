@@ -113,7 +113,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add truck failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;
   }
   int add_truck(int status,int id){
@@ -134,6 +135,7 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<"add truck failed\r\n";
       return -1;
     }	
+    std::cout<<res<<" success\r\n";
     return 0;
   }
   int add_order(long tracking_num,long order_id,int wh_id,int des_x,int des_y,int status,int truck_id,int user_id,std::string first_item,int item_num){
@@ -163,7 +165,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add order failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;		
   }
   int add_order(long tracking_num,long order_id,int wh_id,int des_x,int des_y,int status,int truck_id,std::string first_item,int item_num){
@@ -193,7 +196,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add order failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;		
   }
   int add_order(long tracking_num,long order_id,int wh_id,int status,int truck_id,int user_id,std::string first_item,int item_num){
@@ -221,7 +225,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add order failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;		
   }
   int add_order(long tracking_num,long order_id,int wh_id,int des_x,int des_y,int status,int truck_id){
@@ -247,7 +252,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add order failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;		
   }
   int add_order(long tracking_num,long order_id,int wh_id,int status,int truck_id){
@@ -272,7 +278,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add order failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;		
   }
   int add_item(std::string name,int count,long order_id){
@@ -289,7 +296,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add item failed\r\n";
       return -1;
-    }	
+    }
+    std::cout<<res<<" success\r\n";	
     return 0;
   }
   int add_warehouse(int id, int x, int y){
@@ -306,7 +314,8 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<res<<std::endl;
       std::cout<<"add warehouse failed\r\n";
       return -1;
-    } 
+    }
+    std::cout<<res<<" success\r\n"; 
     return 0;    
   }
   int update(std::string instruction){
@@ -320,6 +329,7 @@ class db : public boost::enable_shared_from_this<db> {
       std::cout<<"update failed\r\n";
       return -1;			
     }
+    std::cout<<instruction<<" success\r\n";
     return 0;
   }
   int get_oldest_order_whid(){
@@ -328,6 +338,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<int>();
     }
     else{
@@ -342,7 +353,8 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
       res->push_back(c[0].as<long>());
-    } 
+    }
+    std::cout<<ins<<" success\r\n"; 
     return res;
   }  
   std::vector<long> * get_oid_by_truckid(int truck_id){
@@ -354,6 +366,7 @@ class db : public boost::enable_shared_from_this<db> {
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
       res->push_back(c[0].as<long>());
     } 
+    std::cout<<ins<<" success\r\n";
     return res;
   }
   int get_free_truck(){
@@ -363,6 +376,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<int>();
     }
     else{
@@ -376,6 +390,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<int>();
     }
     else{
@@ -390,6 +405,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<int>();
     }
     else{
@@ -403,9 +419,11 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<int>();
     }
     else{
+      std::cout<<"no truck with id = "<<truck_id<<"\r\n";
       return -1;
     }     
   }
@@ -419,6 +437,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<int>();
     }
     else{
@@ -432,6 +451,7 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get "<<c[0].as<int>()<<"\r\n";
       return c[0].as<long>();
     }
     else{
@@ -444,9 +464,11 @@ class db : public boost::enable_shared_from_this<db> {
     result R( W.exec( ins ));W.commit();
     result::const_iterator c = R.begin();
     if(c != R.end()){
+      std::cout<<ins<<" success; get true\r\n";
       return true;
     }
     else{
+      std::cout<<ins<<" success; get true\r\n";
       return false;
     }
   }
@@ -464,7 +486,8 @@ class db : public boost::enable_shared_from_this<db> {
       temp.x=c[1].as<int>();
       temp.y=c[2].as<int>();
       res->push_back(&temp);
-    }     
+    } 
+    std::cout<<ins<<" success\r\n";    
     return res;
   }
 };

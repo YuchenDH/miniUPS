@@ -107,7 +107,7 @@ private:
     // ucon->set_reconnectid(RECONNECTID);
     ucon->set_numtrucksinit(NUMTRUCKS);
     //send();
-    std::cout<<"before send";
+    std::cout<<"before send\n";
     vector<uint8_t> writebuf;
     PackedMessage<ups::UConnect> ucon_msg(ucon);
     ucon_msg.pack(writebuf);
@@ -182,7 +182,7 @@ private:
   }
 
   void world_handle_read_body(const boost::system::error_code& error) {
-    DEBUG && (cerr << "handle body from world " << error << endl);
+    DEBUG && (cerr << "handle body from world\n " << error << endl);
     if (!error) {
       DEBUG && (cerr << "Got body\n");
       DEBUG && (cerr << show_hex(world_readbuf) << endl);
@@ -228,23 +228,25 @@ private:
       //assert resp is not empty (happens when world sent a "deliver_made"-only response)
 ///	
       if (temp != NULL && temp->pickups_size()) {
-	vector<uint8_t> writebuf;
-	UCpointer temppointer(temp);
-	PackedMessage<ups::UCommands> resp_msg(temppointer);
-	resp_msg.pack(writebuf);
-	send_msg(world_sock, writebuf);
+	     vector<uint8_t> writebuf;
+	     UCpointer temppointer(temp);
+	     PackedMessage<ups::UCommands> resp_msg(temppointer);
+	     resp_msg.pack(writebuf);
+	      send_msg(world_sock, writebuf);
+        std::cout<<"send UCommands to world(assign truck to warehouse)\r\n";
       }
       
       if (resp->gp_size() != 0 || resp->ta_size() != 0){
-	//pack message and send to amz
-	vector<uint8_t> writebuf;
-	PackedMessage<au::U2A> resp_msg(resp);
-	resp_msg.pack(writebuf);
-	send_msg(amz_sock, writebuf);
+  	 //pack message and send to amz
+  	   vector<uint8_t> writebuf;
+  	   PackedMessage<au::U2A> resp_msg(resp);
+  	   resp_msg.pack(writebuf);
+  	   send_msg(amz_sock, writebuf);
+       std::cout<<"send U2A to amz\r\n";
       }
     }
   }
-  U2Apointer prepare_U2A(URpointer ures, UCpointer temp){
+  U2Apointer prepare_U2A(URpointer ures, UCpointer ucom){
     if(ures->has_error()){
       //has error, handle it
       cerr << "Error msg in world response: " << ures->error() << endl;
@@ -268,11 +270,12 @@ private:
       for(int i=0 ;i<ures->completions_size();++i){
         int truck_id = ures->completions(i).truckid();
         int status = dblink->get_truck_status(truck_id);//0:free/idle 1:ready 2:pickup 3:wait for loading 4:out of delivery
-	if(status<0){
-	  dblink->add_truck(0,ures->completions(i).x(),ures->completions(i).y(),truck_id);
-	  continue ; 
-	}
-	int x = ures->completions(i).x();
+	      if(status<0){
+	        dblink->add_truck(0,ures->completions(i).x(),ures->completions(i).y(),truck_id);
+	        continue ; 
+	      }
+	       
+        int x = ures->completions(i).x();
         int y = ures->completions(i).y();
         if(status == 2){//2:pick up
           //arrive at warehouse, need to load
@@ -317,7 +320,7 @@ private:
           ins+=";";
           dblink->update(ins);
           if(truckshortage){
-            assign_truck(temp);
+            assign_truck(ucom);
           }
         }
         else{
@@ -404,6 +407,10 @@ private:
     if(dblink->has_unprocessed_order() && (truck_id = dblink->get_free_truck())<0){
       truckshortage=true;
     }
+    else if(!dblink->has_unprocessed_order()){
+      truckshortage = false;
+    }
+    std::cout<<"truck shortage is "<<truckshortage<<"\r\n";
   }
   
   UCpointer prepare_UCommands(A2Upointer a2u){
@@ -433,6 +440,7 @@ private:
       ins+=std::to_string(temp->at(i));
       ins+=";";
     }
+    std::cout<<"bind order with truck end (truck id, whid) is "<<truck_id<<","<<whid<<"\r\n";
     return whid;
   }
 
@@ -471,7 +479,8 @@ private:
     }
     for(int i=0;i<pr->items_size();++i){
     dblink->add_item(pr->items(i).des(),pr->items(i).count(),order_id);
-    }   
+    }
+    std::cout<<"insert order to db end\r\n";   
   }
   void update_dblink_by_td(au::A2Utruckdepart* td,UCpointer temp){
     //modify UCommand
