@@ -12,23 +12,23 @@ services:
       image: postgres
       volumes:
             - data-volume:/var/lib/postgresql/data
-  web-init:
-      build: ./web-app
-      command: /code/initserver.sh
-      volumes:
-        - ./web-app:/code
-      depends_on:
-        - db
+#  web-init:
+#      build: ./web-app
+#      command: /code/initserver.sh
+#      volumes:
+#        - ./web-app:/code
+#      depends_on:
+#        - db
   web:
       build: ./web-app
       user: nobody
-      command: /code/runserver.sh
+      command: /code/startserver.sh
       volumes:
         - ./web-app:/code
       expose:
         - "8000"
       depends_on:
-        - web-init
+        - db
   nginx:
      image: nginx:latest
      ports:
@@ -39,7 +39,7 @@ services:
        - web
   ups:
      build: ./ups_server
-     command: bash -c "sleep 5 && ./server"
+     command: bash -c "sleep 10 && ./server"
      volumes:
        - ./ups_server:/code
      depends_on:
