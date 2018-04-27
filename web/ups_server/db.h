@@ -410,7 +410,7 @@ class db : public boost::enable_shared_from_this<db> {
     }     
   }
   int get_warehouse_id(int x,int y){
-    std::string ins("select wh_id fromsearch_warehouses where xlocation = ");
+    std::string ins("select wh_id from search_warehouses where xlocation = ");
     ins+=std::to_string(x);
     ins+=" and ylocation = ";
     ins+=std::to_string(y);
