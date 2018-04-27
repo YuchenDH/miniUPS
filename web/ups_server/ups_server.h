@@ -385,22 +385,23 @@ private:
   }
   
   void amz_handle_request() {
+    DEBUG && (cerr<<"begin handle amz request\n");
     if (packed_a2u.unpack(amz_readbuf)) {
       A2Upointer ares = packed_a2u.get_msg();
       UCpointer resp = prepare_UCommands(ares);
-
+      DEBUG && (cerr<<"genrated UCommands\n");
       //pack message and send to amz
       vector<uint8_t> writebuf;
       PackedMessage<ups::UCommands> resp_msg(resp);
       resp_msg.pack(writebuf);
       send_msg(world_sock, writebuf);
-      std::cout<<"send UCommand to world(pr & td)\n";
+      DEBUG && (cerr<<"send UCommand to world(pr & td)\n");
     }
   }
   
   void assign_truck(UCpointer response){
     int truck_id = -2;
-    while(dblink->has_unprocessed_order() && (truck_id = dblink->get_free_truck())>0){
+    while(dblink->has_unprocessed_order() && (truck_id = dblink->get_free_truck())>=0){
       int whid = bind_order_with_truck(truck_id);
       ups::UGoPickup * temp = response->add_pickups();
       temp->set_truckid(truck_id);
