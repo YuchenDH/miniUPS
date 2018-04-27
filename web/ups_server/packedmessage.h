@@ -87,7 +87,7 @@ public:
              continue ; 
          }
 	    if(buf.at(i)<0x80){
-	       return res | int(buf.at(i))<<s
+	       return res | int(buf.at(i))<<s;
 	    }
 	    res |= int(buf.at(i)&0x7f) << s;
 	    s+=7;
