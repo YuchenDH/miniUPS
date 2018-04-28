@@ -103,8 +103,9 @@ public:
       return 0;
     }
     int get_header_size(const data_buffer& buf) const{
+      //size_t a = get_00_num(buf);
       for(size_t i=0;i<HEADER_SIZE;++i){
-	    if(buf.at(i)<0x80){
+      if(buf.at(i)<0x80){
 	       return i+1;
 	    }
       }
@@ -125,7 +126,8 @@ public:
     //
     bool unpack(const data_buffer& buf)
     {
-      int headersize = get_header_size(buf);
+      size_t a = get_00_num(buf);
+      int headersize = get_header_size(buf)+a;
         return m_msg->ParseFromArray(&buf[headersize], buf.size() - headersize);
     }
 private:

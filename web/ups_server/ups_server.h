@@ -23,7 +23,7 @@
 
 #define NUMTRUCKS 5
 #define RECONNECTID 10
-#define AMZ_ADDRESS "152.3.64.74"//need modify, 152.3.64.74
+#define AMZ_ADDRESS "152.3.77.224"//need modify, 152.3.64.74
 #define AMZ_PORT 23457
 #define WORLD_ADDRESS "67.159.89.119"
 #define WORLD_PORT 12345
