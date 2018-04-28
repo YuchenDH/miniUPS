@@ -31,6 +31,22 @@
    </div>
    </nav>
    <br><br><br><br><br><br><br><br>
+
+    <div class="text-center">
+    <form role="search" action="/users/realuser/" method="POST" class="row search-form">
+    {% csrf_token %}
+    <div class="col-md-8 col-md-push-2">
+    <div class="search-wrapper">
+    <div class="search-container">
+    <span class="twitter-typeahead" style="position: relative; display: inline-block;">
+    <input type="text" class="store-search typeahead form-control tt-hint" readonly="" autocomplete="off" spellcheck="false" tabindex="-1" dir="ltr" style="position: absolute; top: 0px; left: 0px; border-color: transparent; box-shadow: none; opacity: 1; background: none 97% 50% / auto 60% no-repeat scroll padding-box border-box rgb(255, 255, 255);">
+    <input type="text" name="date" placeholder="20180101" required="" class="store-search typeahead form-control tt-input" autocomplete="off" spellcheck="false" dir="auto" style="position: relative; vertical-align: top; background-color: transparent;">
+
+    <button type="submit" class="btn-primary btn"><span class="icon icon-search"></span>Search by date(YYYYMMDD)</button>   
+    <div class="tt-dataset tt-dataset-categories"></div>
+    </div>
+
+   
   <div class="container" style="padding: 100px 50px 10px;" >
   <div class='text-center'>
   {% for uo in uos %}
