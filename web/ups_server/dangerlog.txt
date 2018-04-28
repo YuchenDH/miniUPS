@@ -25,3 +25,13 @@
    UpsServer instances with more io_service and threads. However under
    current situation we believe one instance is already more than
    enough.
+
+2. Our protobuf uses self-defined packing and unpacking functions
+   without a complete error handling. So ill-formed data transmission
+   will lead to undefined behavior.
+
+3. Our connection to amazon is single-time without acknowledgment.
+   Typically we don't know whether amazon has confirmed the
+   receiving or not.
+
+4. We only guarantee single-accessing within one connection to database.
