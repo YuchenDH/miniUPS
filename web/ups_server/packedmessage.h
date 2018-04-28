@@ -68,7 +68,7 @@ public:
             return false;
 
         unsigned msg_size = m_msg->ByteSize();
-	unsigned header_size;
+	      unsigned header_size;
         encode_header(buf, msg_size, header_size);
         buf.resize(header_size + msg_size);
         return m_msg->SerializeToArray(&buf[header_size], msg_size);
@@ -126,8 +126,8 @@ public:
     //
     bool unpack(const data_buffer& buf)
     {
-      size_t a = get_00_num(buf);
-      int headersize = get_header_size(buf)+a;
+      //size_t a = get_00_num(buf);
+      int headersize = get_header_size(buf);
         return m_msg->ParseFromArray(&buf[headersize], buf.size() - headersize);
     }
 private:

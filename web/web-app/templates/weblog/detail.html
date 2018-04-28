@@ -34,7 +34,7 @@
   <div class="container" style="padding: 100px 50px 10px;" >
   <div class='text-center'>
   {% for uo in uos %}
-  <a href="/search/orders/?oi={{uo.order_id}}" class="list-group-item" data-toggle="popover" title="{{uo.first_item}} and other {{uo.item_num}} items">{{uo.order_id}}</a>
+  <a href="/search/orders/?oi={{uo.order_id}}" class="list-group-item" data-toggle="popover" title="{{uo.first_item}} and other {{uo.item_num}} items">{{uo.tracking_num}}</a>
   {% endfor %}
   </div>
   </div>
